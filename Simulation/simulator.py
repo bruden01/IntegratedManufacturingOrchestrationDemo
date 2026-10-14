@@ -142,9 +142,10 @@ class Publisher:
 
 
 class Simulator:
-    def __init__(self, publisher, speed, opcua=None):
+    def __init__(self, publisher, speed, opcua=None, erp=None):
         self.pub = publisher
         self.opcua = opcua
+        self.erp = erp
         self.lock = threading.RLock()
         self.speed = speed
         self.paused = False
@@ -183,10 +184,14 @@ class Simulator:
             for v in self.vehicles:
                 self._publish_part_status(v)
             self._update_opcua()
+            if self.erp:
+                self.erp.reset(self.rev, self.vehicles, self.tuggers)
 
     # ---- publishing --------------------------------------------------------
 
     def publish_build_order(self, reason, changes=None):
+        if self.erp and hasattr(self, 'booted'):
+            self.erp.sync_build_orders(self.rev, self.vehicles)
         self.pub.publish(TOPIC_BUILD_ORDER, {
             'type': 'BuildOrder',
             'rev': self.rev,
@@ -200,6 +205,8 @@ class Simulator:
         })
 
     def _publish_part_status(self, v):
+        if self.erp:
+            self.erp.update_seat_set(v)
         self.pub.post('PartStatus', {
             'type': 'PartStatus',
             'vin': v['vin'],
@@ -274,12 +281,17 @@ class Simulator:
             if delivered:
                 for v in delivered:
                     self.vehicles.remove(v)
+                    if self.erp:
+                        self.erp.delete_seat_set(v['vin'])
                     self.pub.post('PartStatus', {
                         'type': 'PartStatus', 'vin': v['vin'], 'seq': v['seq'], 'stage': 'LINE_SIDE',
                         'needInSec': 0, 'source': 'supplier-a', 'ts': now_iso(),
                     })
                     last = self.vehicles[-1]
-                    self.vehicles.append(self._make_vehicle(last['seq'] + 1, last['need'] + TAKT_SEC))
+                    entering = self._make_vehicle(last['seq'] + 1, last['need'] + TAKT_SEC)
+                    self.vehicles.append(entering)
+                    if self.erp:
+                        self.erp.update_seat_set(entering)
                 self.publish_build_order(reason='advance')
 
             self._telemetry_acc += dt
@@ -316,6 +328,8 @@ class Simulator:
         self.rev += 1
         for v in (va, vb):
             v['stage'] = stage_for(v['need'])
+            if self.erp:
+                self.erp.update_seat_set(v)
         self.publish_build_order(
             reason='revision',
             changes=[
@@ -329,6 +343,7 @@ class Simulator:
         """Vision check at the sequencing station flags a torn bolster."""
         v = self.vehicles[3]
         v['hold'] = True
+        v['defect'] = 'torn bolster'
         self.pub.post('Quality', {
             'type': 'QualityScan', 'result': 'FAIL', 'defect': 'torn bolster', 'station': 'SEQ-3',
             'vin': v['vin'], 'seq': v['seq'], 'source': 'supplier-a', 'ts': now_iso(),
@@ -344,6 +359,9 @@ class Simulator:
             v['tugger'] = 'T3'
         t['state'] = 'FAULT'
         t['fault'] = 'E-41'
+        if self.erp:
+            self.erp.update_tugger('T3', 'FAULT', 'E-41')
+            self.erp.sync_build_orders(self.rev, self.vehicles)
         self.pub.publish(f'{TOPIC_TUGGER}/T3/fault', {
             'type': 'TuggerFault', 'tugger': 'T3', 'code': 'E-41', 'description': 'drive fault',
             'carrying': [v['seq'] for v in carrying], 'source': 'supplier-b', 'ts': now_iso(),
@@ -376,6 +394,7 @@ class Simulator:
                 'scenariosTriggered': list(self.scenarios),
                 'dryRun': self.pub.dry_run,
                 'seatingPostErrors': self.pub.post_errors,
+                'databaseWriteErrors': self.erp.errors if self.erp else None,
                 'machineFaults': dict(self.machine_faults),
                 'tuggers': {k: {'state': t['state'], 'fault': t['fault']} for k, t in self.tuggers.items()},
                 'vehicles': [
@@ -484,6 +503,8 @@ def main():
     ap.add_argument('--http-port', type=int, default=8765)
     ap.add_argument('--speed', type=float, default=1.0, help='sim seconds per real second')
     ap.add_argument('--opcua-port', type=int, default=4840, help='OPC UA server port (0 disables)')
+    ap.add_argument('--db-dir', default=None, help='where the SQLite system-of-record files live (default ../Databases/data)')
+    ap.add_argument('--no-db', action='store_true', help='do not maintain the SQLite databases')
     ap.add_argument('--dry-run', action='store_true', help='print messages instead of publishing')
     args = ap.parse_args()
 
@@ -494,7 +515,12 @@ def main():
         opcua = MachineOpcUaServer(['CHG-1', 'CHG-2', 'CHG-3'], ['CONV-1'], args.opcua_port)
         opcua.start()
         print(f'OPC UA server: {opcua.endpoint}', flush=True)
-    sim = Simulator(pub, args.speed, opcua)
+    erp = None
+    if not args.no_db:
+        from erp import Erp, DEFAULT_DATA_DIR
+        erp = Erp(args.db_dir or DEFAULT_DATA_DIR)
+        print(f'System databases: {erp.data_dir}', flush=True)
+    sim = Simulator(pub, args.speed, opcua, erp)
     server = ThreadingHTTPServer(('127.0.0.1', args.http_port), make_handler(sim))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f'Control panel: http://127.0.0.1:{args.http_port}/  ({"dry run" if args.dry_run else f"publishing to {args.broker}:{args.mqtt_port}"})', flush=True)
@@ -513,6 +539,8 @@ def main():
         pub.close()
         if opcua:
             opcua.stop()
+        if erp:
+            erp.close()
 
 
 if __name__ == '__main__':

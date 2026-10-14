@@ -22,6 +22,18 @@ The simulator (`Simulation/simulator.py`) produces every feed, each by the route
 | Supplier B, tugger fleet | `com.vantiqse.imo.SupplierBTugger` (MQTT) | `/vantiqse/imo/supplierb/tugger/#`, which covers `T1`, `T2`, `T3` × `telemetry` and `fault` | Telemetry every 2 sim-seconds per tugger; fault on event | Source created; routed by rule `OnTuggerMsg` to service `com.vantiqse.imo.Tugger` events `Telemetry` and `Fault` |
 | Supplier B, machine data | `com.vantiqse.imo.SupplierBMachines` (OPCUA extension source) | Server `opc.tcp://localhost:4840/imo`, namespace `urn:vantiqse:imo`, nodes `Machine.<CHG-1\|CHG-2\|CHG-3\|CONV-1>.<field>` (chargers: `State`, `ChargePct`, `FaultCode`; conveyor: `State`, `CartCount`, `FaultCode`) | Node updates on change, checked every 2 sim-seconds | Simulator hosts the OPC UA server; `OPCUA` source implementation and the source are created in the namespace; the connector in `OpcUaConnector/` (must be running locally) relays node changes; payloads verified arriving at the source; consumed by app `com.vantiqse.imo.Machines.MachineData` into service `com.vantiqse.imo.Machines`, which does no processing yet. Separate from the MQTT tugger fleet. Scenarios `charger` (CHG-2, E-17) and `conveyor` (CONV-1, J-03) fault these machines |
 
+### Systems of record (SQLite, through the JDBC connector)
+
+Records the reactions need that a stream cannot carry. Each is its own database, played by the simulator and reached from Vantiq through the connector in `JdbcConnector/`.
+
+| System | Vantiq source | Database | Tables | Used for |
+|---|---|---|---|---|
+| Plant MES order database | `com.vantiqse.imo.PlantMESDB` | `plantmes.db` | `build_orders` | Order master: VIN, sequence, trim, seat spec, need time |
+| Supplier A seating ERP/WMS | `com.vantiqse.imo.SupplierADB` | `supplier_a.db` | `seat_sets`, `seat_inventory` | Seat-set records; spare-seat lookup and reservation (bin B-14) |
+| Supplier B fleet management | `com.vantiqse.imo.SupplierBDB` | `supplier_b.db` | `tuggers`, `assignments` | Tugger registry; which tugger carries which seat set |
+
+Status: databases, sources and connector built. Nothing in Vantiq reads them yet.
+
 ## What happens after a message lands
 
 1. The source delivers the raw payload. Formats differ: JSON, a vendor schema, MQTT topics, OPC UA node values.

@@ -1,0 +1,33 @@
+{
+  "active": true,
+  "ars_properties": {
+    "additionalConfigProps": [
+      "jdbcConfig.general.username",
+      "jdbcConfig.general.password",
+      "jdbcConfig.general.dbURL"
+    ]
+  },
+  "ars_relationships": [],
+  "autoUnwind": false,
+  "config": {
+    "jdbcConfig": {
+      "general": {
+        "dbURL": "jdbc:sqlite:../Databases/data/supplier_b.db",
+        "password": "unused",
+        "username": "unused"
+      }
+    },
+    "vantiq": {
+      "packageRows": "true"
+    }
+  },
+  "isUnavailable": false,
+  "messageType": null,
+  "mockProcedures": {},
+  "name": "com.vantiqse.imo.SupplierBDB",
+  "type": "JDBC",
+  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
+  "ars_version": 1,
+  "ars_createdAt": "2026-10-14T19:00:08.811Z",
+  "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
+}

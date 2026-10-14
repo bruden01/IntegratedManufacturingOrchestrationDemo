@@ -1,0 +1,4 @@
+# Copy to server.config and fill in authToken. server.config is git-ignored.
+targetServer=https://dev.vantiq.com
+authToken=PASTE_ACCESS_TOKEN_HERE
+sources=com.vantiqse.imo.PlantMESDB,com.vantiqse.imo.SupplierADB,com.vantiqse.imo.SupplierBDB

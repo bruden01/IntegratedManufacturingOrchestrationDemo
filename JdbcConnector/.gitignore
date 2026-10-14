@@ -1,0 +1,4 @@
+# Built or cloned by setup.sh
+upstream/
+dist/
+serverConfig/server.config
