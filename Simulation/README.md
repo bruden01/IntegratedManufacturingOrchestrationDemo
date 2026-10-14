@@ -21,6 +21,8 @@ Options: `--speed 10` (sim seconds per real second), `--dry-run` (print instead 
 | `POST /scenario/reorder` | Build-order rev 117 → 118, two positions swapped |
 | `POST /scenario/damage` | Vision check fails on the seat set at position 4 (torn bolster) |
 | `POST /scenario/tugger` | Tugger T3 faults (E-41) carrying the two soonest seat sets |
+| `POST /scenario/charger` | Charging station CHG-2 faults (E-17); OPC UA feed only |
+| `POST /scenario/conveyor` | Dock conveyor CONV-1 jams (J-03); OPC UA feed only |
 | `POST /reset` | Back to rev 117, all healthy |
 | `POST /speed?factor=10` | Change speed (0.1 to 60) |
 | `POST /pause`, `POST /resume` | Freeze or resume time |
@@ -56,7 +58,7 @@ Supplier B's machine data is served as OPC UA at `opc.tcp://localhost:4840/imo` 
 | `CHG-1`, `CHG-2`, `CHG-3` (tugger charging stations) | `State` (IDLE, CHARGING, FAULT), `ChargePct`, `FaultCode` |
 | `CONV-1` (dock conveyor) | `State` (RUNNING, STOPPED, JAMMED), `CartCount`, `FaultCode` |
 
-No scenario faults these machines yet.
+The charger and conveyor scenarios set `State` to `FAULT` / `JAMMED` and `FaultCode` to `E-17` / `J-03`. Reset clears them.
 
 The simulator only hosts the OPC UA server. The bridge to Vantiq is the OPC UA connector in `../OpcUaConnector` (see its README), which connects to this server and relays node changes to the Vantiq source `com.vantiqse.imo.SupplierBMachines`.
 

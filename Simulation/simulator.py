@@ -177,6 +177,7 @@ class Simulator:
             self.sim_time = 0.0
             self._telemetry_acc = 0.0
             self.scenarios = []
+            self.machine_faults = {}   # machine id -> fault code, for the OPC UA feed
             self.publish_build_order(reason='reset' if hasattr(self, 'booted') else 'startup')
             self.booted = True
             for v in self.vehicles:
@@ -235,15 +236,17 @@ class Simulator:
         for i, tid in enumerate(TUGGER_IDS, start=1):
             t = self.tuggers[tid]
             docked = (t['phase'] % 1.0) < 0.1
+            fault = self.machine_faults.get(f'CHG-{i}', '')
             self.opcua.update(f'CHG-{i}', {
-                'State': 'CHARGING' if docked and t['state'] != 'FAULT' else 'IDLE',
+                'State': 'FAULT' if fault else 'CHARGING' if docked and t['state'] != 'FAULT' else 'IDLE',
                 'ChargePct': max(20, round(95 - self.sim_time / 120)),
-                'FaultCode': '',
+                'FaultCode': fault,
             })
+        fault = self.machine_faults.get('CONV-1', '')
         self.opcua.update('CONV-1', {
-            'State': 'RUNNING',
+            'State': 'JAMMED' if fault else 'RUNNING',
             'CartCount': sum(1 for v in self.vehicles if v['stage'] in ('STAGED', 'SEQUENCED')),
-            'FaultCode': '',
+            'FaultCode': fault,
         })
 
     # ---- time --------------------------------------------------------------
@@ -294,6 +297,8 @@ class Simulator:
                 'reorder': self._scenario_reorder,
                 'damage': self._scenario_damage,
                 'tugger': self._scenario_tugger,
+                'charger': self._scenario_charger,
+                'conveyor': self._scenario_conveyor,
             }.get(name)
             if handler is None:
                 raise KeyError(name)
@@ -346,6 +351,18 @@ class Simulator:
         self._publish_tugger(t)
         return {'tugger': 'T3', 'code': 'E-41', 'carrying': [v['seq'] for v in carrying]}
 
+    def _scenario_charger(self):
+        """Charging station CHG-2 trips a contactor fault (OPC UA machine data only)."""
+        self.machine_faults['CHG-2'] = 'E-17'
+        self._update_opcua()
+        return {'machine': 'CHG-2', 'code': 'E-17', 'description': 'contactor fault'}
+
+    def _scenario_conveyor(self):
+        """Dock conveyor CONV-1 jams (OPC UA machine data only)."""
+        self.machine_faults['CONV-1'] = 'J-03'
+        self._update_opcua()
+        return {'machine': 'CONV-1', 'code': 'J-03', 'description': 'cart jam'}
+
     # ---- status ------------------------------------------------------------
 
     def status(self):
@@ -359,6 +376,7 @@ class Simulator:
                 'scenariosTriggered': list(self.scenarios),
                 'dryRun': self.pub.dry_run,
                 'seatingPostErrors': self.pub.post_errors,
+                'machineFaults': dict(self.machine_faults),
                 'tuggers': {k: {'state': t['state'], 'fault': t['fault']} for k, t in self.tuggers.items()},
                 'vehicles': [
                     {'seq': v['seq'], 'stage': 'HOLD' if v['hold'] else v['stage'], 'needInSec': round(v['need'])}
@@ -382,6 +400,8 @@ CONTROL_PAGE = """<!doctype html>
   <button onclick="send('/scenario/reorder')">Build-order change</button>
   <button onclick="send('/scenario/damage')">Damaged seat</button>
   <button onclick="send('/scenario/tugger')">Tugger fault</button>
+  <button onclick="send('/scenario/charger')">Charger fault</button>
+  <button onclick="send('/scenario/conveyor')">Conveyor jam</button>
   <button class="reset" onclick="send('/reset')">Reset</button>
 </div>
 <div class="row">
@@ -434,7 +454,7 @@ def make_handler(sim):
                 try:
                     self._send(200, {'ok': True, **sim.trigger(path.rsplit('/', 1)[1])})
                 except KeyError:
-                    self._send(404, {'error': 'unknown scenario', 'available': ['reorder', 'damage', 'tugger']})
+                    self._send(404, {'error': 'unknown scenario', 'available': ['reorder', 'damage', 'tugger', 'charger', 'conveyor']})
             elif path == '/speed':
                 try:
                     factor = float(dict(p.split('=') for p in query.split('&') if '=' in p).get('factor', ''))
