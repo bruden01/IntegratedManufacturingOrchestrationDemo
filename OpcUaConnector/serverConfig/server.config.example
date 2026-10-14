@@ -1,0 +1,4 @@
+# Copy to server.config and fill in authToken. server.config is git-ignored.
+targetServer=https://dev.vantiq.com
+authToken=PASTE_ACCESS_TOKEN_HERE
+source=com.vantiqse.imo.SupplierBMachines

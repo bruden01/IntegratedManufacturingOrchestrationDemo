@@ -8,23 +8,31 @@ Feeds (all JSON):
   /vantiqse/imo/plantmes/buildorder             Plant MES build-order snapshots
   /vantiqse/imo/supplierb/tugger/<id>/telemetry Tugger position and load
   /vantiqse/imo/supplierb/tugger/<id>/fault     Tugger fault codes
-  /vantiqse/imo/suppliera/partstatus            Seat set stage changes
-  /vantiqse/imo/suppliera/quality               Vision-check results
+Supplier A seating is REST, posted directly to the Vantiq service com.vantiqse.imo.Seating:
+  PartStatus event                              Seat set stage changes
+  Quality event                                 Vision-check results
+
+Supplier B's machine data (tugger chargers, dock conveyor) is served over OPC UA
+(opcua_server.py) for the Vantiq OPC UA extension source. It is separate from the MQTT
+tugger fleet feed.
 
 The simulator only reports what happened. The reaction (re-sequencing, replacement
 picks, reassignment) is Vantiq's job.
 """
 import argparse
 import json
+import os
+import queue
 import threading
 import time
+import urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 TOPIC_ROOT = '/vantiqse/imo'
 TOPIC_BUILD_ORDER = f'{TOPIC_ROOT}/plantmes/buildorder'
-TOPIC_PART_STATUS = f'{TOPIC_ROOT}/suppliera/partstatus'
-TOPIC_QUALITY = f'{TOPIC_ROOT}/suppliera/quality'
+SEATING_SERVICE = 'com.vantiqse.imo.Seating'
+CONNECTOR_CONFIG = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'OpcUaConnector', 'serverConfig', 'server.config')
 TOPIC_TUGGER = f'{TOPIC_ROOT}/supplierb/tugger'
 
 FIRST_SEQ = 2041
@@ -61,13 +69,35 @@ def stage_for(need):
     return next(name for name, upper in STAGES if need <= upper)
 
 
-class Publisher:
-    """Publishes to MQTT, or prints when running dry."""
+def load_vantiq_token():
+    """Token from VANTIQ_TOKEN, else the authToken in the OPC UA connector's server.config."""
+    if os.environ.get('VANTIQ_TOKEN'):
+        return os.environ['VANTIQ_TOKEN']
+    try:
+        with open(CONNECTOR_CONFIG) as f:
+            for line in f:
+                key, _, value = line.partition('=')
+                if key.strip() == 'authToken' and value.strip():
+                    return value.strip()
+    except OSError:
+        pass
+    return None
 
-    def __init__(self, host, port, dry_run):
+
+class Publisher:
+    """Publishes to MQTT and posts REST events to Vantiq, or prints when running dry."""
+
+    def __init__(self, host, port, dry_run, vantiq_url='https://dev.vantiq.com'):
         self.dry_run = dry_run
         self.count = 0
         self.client = None
+        self.vantiq_url = vantiq_url.rstrip('/')
+        self.token = None if dry_run else load_vantiq_token()
+        self.post_errors = 0
+        if not dry_run and not self.token:
+            print('No Vantiq token (set VANTIQ_TOKEN or OpcUaConnector/serverConfig/server.config): Seating events will not be sent', flush=True)
+        self.posts = queue.Queue()
+        threading.Thread(target=self._post_worker, daemon=True).start()
         if not dry_run:
             import paho.mqtt.client as mqtt
             self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f'imo-sim-{int(time.time())}')
@@ -82,6 +112,29 @@ class Publisher:
         else:
             self.client.publish(topic, body, qos=1)
 
+    def post(self, event, payload):
+        """POST an event to a Seating service event type. Queued so the simulation never blocks on the network."""
+        self.count += 1
+        if self.dry_run:
+            print(f'POST {SEATING_SERVICE}/{event} {json.dumps(payload)}', flush=True)
+        elif self.token:
+            self.posts.put((event, payload))
+
+    def _post_worker(self):
+        while True:
+            event, payload = self.posts.get()
+            req = urllib.request.Request(
+                f'{self.vantiq_url}/api/v1/resources/services/{SEATING_SERVICE}/{event}',
+                data=json.dumps(payload).encode(),
+                headers={'Authorization': f'Bearer {self.token}', 'Content-Type': 'application/json'},
+                method='POST')
+            try:
+                urllib.request.urlopen(req, timeout=10).read()
+            except Exception as e:
+                self.post_errors += 1
+                if self.post_errors <= 3:
+                    print(f'Seating POST {event} failed: {e}', flush=True)
+
     def close(self):
         if self.client:
             self.client.loop_stop()
@@ -89,8 +142,9 @@ class Publisher:
 
 
 class Simulator:
-    def __init__(self, publisher, speed):
+    def __init__(self, publisher, speed, opcua=None):
         self.pub = publisher
+        self.opcua = opcua
         self.lock = threading.RLock()
         self.speed = speed
         self.paused = False
@@ -127,6 +181,7 @@ class Simulator:
             self.booted = True
             for v in self.vehicles:
                 self._publish_part_status(v)
+            self._update_opcua()
 
     # ---- publishing --------------------------------------------------------
 
@@ -144,7 +199,7 @@ class Simulator:
         })
 
     def _publish_part_status(self, v):
-        self.pub.publish(TOPIC_PART_STATUS, {
+        self.pub.post('PartStatus', {
             'type': 'PartStatus',
             'vin': v['vin'],
             'seq': v['seq'],
@@ -173,6 +228,24 @@ class Simulator:
             'ts': now_iso(),
         })
 
+    def _update_opcua(self):
+        """Push machine state: one charger per tugger, plus the dock conveyor."""
+        if not self.opcua:
+            return
+        for i, tid in enumerate(TUGGER_IDS, start=1):
+            t = self.tuggers[tid]
+            docked = (t['phase'] % 1.0) < 0.1
+            self.opcua.update(f'CHG-{i}', {
+                'State': 'CHARGING' if docked and t['state'] != 'FAULT' else 'IDLE',
+                'ChargePct': max(20, round(95 - self.sim_time / 120)),
+                'FaultCode': '',
+            })
+        self.opcua.update('CONV-1', {
+            'State': 'RUNNING',
+            'CartCount': sum(1 for v in self.vehicles if v['stage'] in ('STAGED', 'SEQUENCED')),
+            'FaultCode': '',
+        })
+
     # ---- time --------------------------------------------------------------
 
     def step(self, real_dt):
@@ -198,7 +271,7 @@ class Simulator:
             if delivered:
                 for v in delivered:
                     self.vehicles.remove(v)
-                    self.pub.publish(TOPIC_PART_STATUS, {
+                    self.pub.post('PartStatus', {
                         'type': 'PartStatus', 'vin': v['vin'], 'seq': v['seq'], 'stage': 'LINE_SIDE',
                         'needInSec': 0, 'source': 'supplier-a', 'ts': now_iso(),
                     })
@@ -211,6 +284,7 @@ class Simulator:
                 self._telemetry_acc = 0.0
                 for t in self.tuggers.values():
                     self._publish_tugger(t)
+                self._update_opcua()
 
     # ---- scenarios ---------------------------------------------------------
 
@@ -250,7 +324,7 @@ class Simulator:
         """Vision check at the sequencing station flags a torn bolster."""
         v = self.vehicles[3]
         v['hold'] = True
-        self.pub.publish(TOPIC_QUALITY, {
+        self.pub.post('Quality', {
             'type': 'QualityScan', 'result': 'FAIL', 'defect': 'torn bolster', 'station': 'SEQ-3',
             'vin': v['vin'], 'seq': v['seq'], 'source': 'supplier-a', 'ts': now_iso(),
         })
@@ -284,6 +358,7 @@ class Simulator:
                 'messagesPublished': self.pub.count,
                 'scenariosTriggered': list(self.scenarios),
                 'dryRun': self.pub.dry_run,
+                'seatingPostErrors': self.pub.post_errors,
                 'tuggers': {k: {'state': t['state'], 'fault': t['fault']} for k, t in self.tuggers.items()},
                 'vehicles': [
                     {'seq': v['seq'], 'stage': 'HOLD' if v['hold'] else v['stage'], 'needInSec': round(v['need'])}
@@ -388,11 +463,18 @@ def main():
     ap.add_argument('--mqtt-port', type=int, default=1883)
     ap.add_argument('--http-port', type=int, default=8765)
     ap.add_argument('--speed', type=float, default=1.0, help='sim seconds per real second')
+    ap.add_argument('--opcua-port', type=int, default=4840, help='OPC UA server port (0 disables)')
     ap.add_argument('--dry-run', action='store_true', help='print messages instead of publishing')
     args = ap.parse_args()
 
     pub = Publisher(args.broker, args.mqtt_port, args.dry_run)
-    sim = Simulator(pub, args.speed)
+    opcua = None
+    if args.opcua_port:
+        from opcua_server import MachineOpcUaServer
+        opcua = MachineOpcUaServer(['CHG-1', 'CHG-2', 'CHG-3'], ['CONV-1'], args.opcua_port)
+        opcua.start()
+        print(f'OPC UA server: {opcua.endpoint}', flush=True)
+    sim = Simulator(pub, args.speed, opcua)
     server = ThreadingHTTPServer(('127.0.0.1', args.http_port), make_handler(sim))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f'Control panel: http://127.0.0.1:{args.http_port}/  ({"dry run" if args.dry_run else f"publishing to {args.broker}:{args.mqtt_port}"})', flush=True)
@@ -409,6 +491,8 @@ def main():
     finally:
         server.shutdown()
         pub.close()
+        if opcua:
+            opcua.stop()
 
 
 if __name__ == '__main__':

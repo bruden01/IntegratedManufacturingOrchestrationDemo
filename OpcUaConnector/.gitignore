@@ -1,0 +1,6 @@
+# Built or cloned by setup.sh / created at run time
+upstream/
+dist/
+storage/
+serverConfig/server.config
+opcuaStorage/
