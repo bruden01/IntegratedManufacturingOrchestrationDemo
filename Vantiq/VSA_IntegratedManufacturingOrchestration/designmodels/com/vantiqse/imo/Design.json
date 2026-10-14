@@ -1,0 +1,227 @@
+{
+  "ars_properties" : {
+    "lpPct" : 15,
+    "rpPct" : 30
+  },
+  "ars_relationships" : [ ],
+  "contents" : {
+    "connectors" : [ {
+      "key" : "e61e37c9-dab9-4eb3-bdaf-c0c408309400&EXTOUTBOUND1",
+      "name" : "EXTOUTBOUND",
+      "parent" : "e61e37c9-dab9-4eb3-bdaf-c0c408309400",
+      "type" : 15
+    }, {
+      "key" : "e61e37c9-dab9-4eb3-bdaf-c0c408309400&EXTINBOUND1",
+      "name" : "EXTINBOUND",
+      "parent" : "e61e37c9-dab9-4eb3-bdaf-c0c408309400",
+      "type" : 14
+    }, {
+      "key" : "d32aae9e-f559-4ad9-91d2-b91806dc9e79&EXTOUTBOUND1",
+      "name" : "EXTOUTBOUND",
+      "parent" : "d32aae9e-f559-4ad9-91d2-b91806dc9e79",
+      "type" : 15
+    }, {
+      "key" : "d32aae9e-f559-4ad9-91d2-b91806dc9e79&EXTINBOUND1",
+      "name" : "EXTINBOUND",
+      "parent" : "d32aae9e-f559-4ad9-91d2-b91806dc9e79",
+      "type" : 14
+    }, {
+      "key" : "3df64409-0b40-4844-8013-8732309400a4&EXTERNALIN1",
+      "name" : "NEW-EXT-IN",
+      "parent" : "3df64409-0b40-4844-8013-8732309400a4",
+      "type" : 13
+    }, {
+      "key" : "3df64409-0b40-4844-8013-8732309400a4&EXTERNALOUT1",
+      "name" : "NEW-EXT-OUT",
+      "parent" : "3df64409-0b40-4844-8013-8732309400a4",
+      "type" : 8
+    }, {
+      "key" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca&EXTERNALIN1",
+      "name" : "NEW-EXT-IN",
+      "parent" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+      "type" : 13
+    }, {
+      "key" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca&EXTERNALOUT1",
+      "name" : "NEW-EXT-OUT",
+      "parent" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+      "type" : 8
+    }, {
+      "key" : "8b339503-a63f-43d9-8fcb-adb91099f133&EXTERNALIN1",
+      "name" : "NEW-EXT-IN",
+      "parent" : "8b339503-a63f-43d9-8fcb-adb91099f133",
+      "type" : 13
+    }, {
+      "key" : "8b339503-a63f-43d9-8fcb-adb91099f133&EXTERNALOUT1",
+      "name" : "NEW-EXT-OUT",
+      "parent" : "8b339503-a63f-43d9-8fcb-adb91099f133",
+      "type" : 8
+    }, {
+      "key" : "3df64409-0b40-4844-8013-8732309400a4&INPUT1",
+      "name" : "NEW-IN",
+      "parent" : "3df64409-0b40-4844-8013-8732309400a4",
+      "type" : 3
+    }, {
+      "key" : "3df64409-0b40-4844-8013-8732309400a4&OUTPUT1",
+      "name" : "NEW-OUT",
+      "parent" : "3df64409-0b40-4844-8013-8732309400a4",
+      "type" : 4
+    }, {
+      "key" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca&INPUT1",
+      "name" : "NEW-IN",
+      "parent" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+      "type" : 3
+    }, {
+      "key" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca&OUTPUT1",
+      "name" : "NEW-OUT",
+      "parent" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+      "type" : 4
+    }, {
+      "key" : "8b339503-a63f-43d9-8fcb-adb91099f133&INPUT1",
+      "name" : "NEW-IN",
+      "parent" : "8b339503-a63f-43d9-8fcb-adb91099f133",
+      "type" : 3
+    }, {
+      "key" : "8b339503-a63f-43d9-8fcb-adb91099f133&OUTPUT1",
+      "name" : "NEW-OUT",
+      "parent" : "8b339503-a63f-43d9-8fcb-adb91099f133",
+      "type" : 4
+    }, {
+      "key" : "51&8b339503-a63f-43d9-8fcb-adb91099f133&EXTERNALIN1",
+      "name" : "Service1ExternalIn",
+      "parent" : "8b339503-a63f-43d9-8fcb-adb91099f133",
+      "type" : 12
+    }, {
+      "key" : "51&3df64409-0b40-4844-8013-8732309400a4&EXTERNALIN1",
+      "name" : "Service1ExternalIn",
+      "parent" : "3df64409-0b40-4844-8013-8732309400a4",
+      "type" : 12
+    }, {
+      "key" : "03efed68-0355-4895-830b-642ad36fedd8&EXTOUTBOUND1",
+      "name" : "EXTOUTBOUND",
+      "parent" : "03efed68-0355-4895-830b-642ad36fedd8",
+      "type" : 15
+    }, {
+      "key" : "03efed68-0355-4895-830b-642ad36fedd8&EXTINBOUND1",
+      "name" : "EXTINBOUND",
+      "parent" : "03efed68-0355-4895-830b-642ad36fedd8",
+      "type" : 14
+    }, {
+      "key" : "51&922d5bf9-8d95-4f73-880c-ebb7f829c0ca&EXTERNALIN1",
+      "name" : "PlantMESExternalIn",
+      "parent" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+      "type" : 12
+    }, {
+      "key" : "a799df79-c21a-4741-8395-01c4b1b1fb43&EXTERNALIN1",
+      "name" : "NEW-EXT-IN",
+      "parent" : "a799df79-c21a-4741-8395-01c4b1b1fb43",
+      "type" : 13
+    }, {
+      "key" : "a799df79-c21a-4741-8395-01c4b1b1fb43&EXTERNALOUT1",
+      "name" : "NEW-EXT-OUT",
+      "parent" : "a799df79-c21a-4741-8395-01c4b1b1fb43",
+      "type" : 8
+    }, {
+      "key" : "a799df79-c21a-4741-8395-01c4b1b1fb43&INPUT1",
+      "name" : "NEW-IN",
+      "parent" : "a799df79-c21a-4741-8395-01c4b1b1fb43",
+      "type" : 3
+    }, {
+      "key" : "a799df79-c21a-4741-8395-01c4b1b1fb43&OUTPUT1",
+      "name" : "NEW-OUT",
+      "parent" : "a799df79-c21a-4741-8395-01c4b1b1fb43",
+      "type" : 4
+    } ],
+    "links" : [ {
+      "isBidirectional" : false,
+      "source" : "e61e37c9-dab9-4eb3-bdaf-c0c408309400&EXTOUTBOUND1",
+      "target" : "51&8b339503-a63f-43d9-8fcb-adb91099f133&EXTERNALIN1"
+    }, {
+      "isBidirectional" : false,
+      "source" : "d32aae9e-f559-4ad9-91d2-b91806dc9e79&EXTOUTBOUND1",
+      "target" : "51&3df64409-0b40-4844-8013-8732309400a4&EXTERNALIN1"
+    }, {
+      "isBidirectional" : false,
+      "source" : "03efed68-0355-4895-830b-642ad36fedd8&EXTOUTBOUND1",
+      "target" : "51&922d5bf9-8d95-4f73-880c-ebb7f829c0ca&EXTERNALIN1"
+    } ],
+    "objects" : [ {
+      "h" : 50,
+      "label" : "SupplierMQTT",
+      "resourceName" : null,
+      "type" : 56,
+      "uuid" : "e61e37c9-dab9-4eb3-bdaf-c0c408309400",
+      "w" : 144.8046875,
+      "x" : 26.515118774747123,
+      "y" : -112.00747857549439
+    }, {
+      "h" : 50,
+      "label" : "OPCUA",
+      "resourceName" : null,
+      "type" : 56,
+      "uuid" : "d32aae9e-f559-4ad9-91d2-b91806dc9e79",
+      "w" : 110.21875,
+      "x" : 86.74770446671366,
+      "y" : 162.083607727399
+    }, {
+      "h" : 59,
+      "label" : "Machines",
+      "resourceName" : "com.vantiqse.imo.Machines",
+      "resourceType" : "services",
+      "type" : 51,
+      "uuid" : "3df64409-0b40-4844-8013-8732309400a4",
+      "w" : 200,
+      "x" : 82.9793615132441,
+      "y" : 319.0940894150959
+    }, {
+      "h" : 59,
+      "label" : "PlantMES",
+      "resourceName" : "com.vantiqse.imo.PlantMES",
+      "resourceType" : "services",
+      "type" : 51,
+      "uuid" : "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+      "w" : 200,
+      "x" : -158.49605871070304,
+      "y" : 233.16421234259548
+    }, {
+      "h" : 59,
+      "label" : "Tugger",
+      "resourceName" : "com.vantiqse.imo.Tugger",
+      "resourceType" : "services",
+      "type" : 51,
+      "uuid" : "8b339503-a63f-43d9-8fcb-adb91099f133",
+      "w" : 200,
+      "x" : 18.474120669395575,
+      "y" : 9.497762268354062
+    }, {
+      "h" : 50,
+      "label" : "PlantMQTT",
+      "resourceName" : null,
+      "type" : 56,
+      "uuid" : "03efed68-0355-4895-830b-642ad36fedd8",
+      "w" : 124.21875,
+      "x" : -160.42463622865196,
+      "y" : 107.31558966256728
+    }, {
+      "h" : 59,
+      "label" : "Seating",
+      "resourceName" : "com.vantiqse.imo.Seating",
+      "resourceType" : "services",
+      "type" : 51,
+      "uuid" : "a799df79-c21a-4741-8395-01c4b1b1fb43",
+      "w" : 127.60252857208252,
+      "x" : 283.16151427366526,
+      "y" : 89.75006738510584
+    } ],
+    "prefs" : {
+      "scaleAndTranslationState" : {
+        "lastZoomRequest" : 0,
+        "scale" : 0.7388041788874378,
+        "translate" : [ 232.79907529268223, 132.19227953517716 ]
+      }
+    },
+    "v" : 1
+  },
+  "description" : "No description given",
+  "name" : "com.vantiqse.imo.Design",
+  "serviceEventRoutes" : [ ]
+}

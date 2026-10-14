@@ -1,0 +1,7 @@
+{
+  "baseConfigProperties" : [ "opcUAInformation.discoveryEndpoint", "opcUAInformation.securityPolicy", "opcUAInformation.monitoredItems" ],
+  "baseType" : "EXTENSION",
+  "config" : { },
+  "name" : "OPCUA",
+  "verticle" : "service:extensionSource"
+}

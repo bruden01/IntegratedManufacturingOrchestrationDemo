@@ -5,9 +5,23 @@
       "creationDisabled" : false
     }
   },
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : [ ]
+  },
   "ars_relationships" : [ ],
+  "description" : null,
+  "eventTypes" : { },
+  "globalType" : null,
   "interface" : [ ],
+  "internalEventHandlers" : [ "/collaborationtypes/com.vantiqse.imo.PlantMES.PlantMESData" ],
   "isAgent" : false,
   "name" : "com.vantiqse.imo.PlantMES",
-  "replicationFactor" : 1
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : { }
 }

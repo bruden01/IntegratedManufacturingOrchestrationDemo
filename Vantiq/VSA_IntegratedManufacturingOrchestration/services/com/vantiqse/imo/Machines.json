@@ -1,0 +1,27 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : [ ]
+  },
+  "ars_relationships" : [ ],
+  "description" : null,
+  "eventTypes" : { },
+  "globalType" : null,
+  "interface" : [ ],
+  "internalEventHandlers" : [ "/collaborationtypes/com.vantiqse.imo.Machines.MachineData" ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.Machines",
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : { }
+}

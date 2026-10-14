@@ -1,0 +1,63 @@
+{
+  "active" : true,
+  "ars_properties" : {
+    "dataVersion" : 5,
+    "graph" : {
+      "coordinates" : {
+        "c58f3ece-1657-420a-8eed-a615c7ea16a1" : {
+          "x" : 0,
+          "y" : 0.14672686230248308
+        }
+      },
+      "lastZoomRequest" : 0,
+      "scale" : 6.815384615384615,
+      "translate" : [ 526, 221.5 ]
+    },
+    "groupSettings" : {
+      "appGroupOpenHash" : {
+        "actions" : true,
+        "filters" : true,
+        "flowControl" : true
+      },
+      "ctGroupOpenHash" : {
+        "actions" : true,
+        "mobile" : true
+      },
+      "ctServiceOpen" : false,
+      "serviceGroupOpenHash" : { }
+    },
+    "isHidden" : false,
+    "paletteWidth" : 170,
+    "propertyWidth" : 280
+  },
+  "ars_relationships" : [ ],
+  "assembly" : {
+    "Initiate" : {
+      "configuration" : {
+        "childStreams" : null,
+        "condition" : null,
+        "eventTypeName" : null,
+        "inboundResource" : "sources",
+        "inboundResourceId" : "com.vantiqse.imo.PlantMES",
+        "op" : null,
+        "outboundResource" : null,
+        "outboundResourceConfig" : null,
+        "outboundResourceId" : null,
+        "parentStreams" : [ ],
+        "schema" : null,
+        "upsert" : false
+      },
+      "downstreamReferences" : { },
+      "name" : "Initiate",
+      "pattern" : "EventStream",
+      "patternVersion" : 5,
+      "uuid" : "c58f3ece-1657-420a-8eed-a615c7ea16a1"
+    }
+  },
+  "contextualizedAssembly" : { },
+  "disableBadging" : false,
+  "isComponent" : false,
+  "isEventHandler" : true,
+  "keyTypes" : [ "collaborations" ],
+  "name" : "com.vantiqse.imo.PlantMES.PlantMESData"
+}

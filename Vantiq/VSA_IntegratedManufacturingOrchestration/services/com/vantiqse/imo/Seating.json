@@ -1,0 +1,28 @@
+{
+  "active": true,
+  "agentFrameworkVersion": "1.1",
+  "ars_relationships": [],
+  "eventTypes": {
+    "PartStatus": {
+      "direction": "INBOUND",
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Seating.PartStatus/EventStream",
+      "isPrivate": false,
+      "isReliable": false
+    },
+    "Quality": {
+      "direction": "INBOUND",
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Seating.Quality/EventStream",
+      "isPrivate": false,
+      "isReliable": false
+    }
+  },
+  "isAgent": false,
+  "name": "com.vantiqse.imo.Seating",
+  "replicationFactor": 1,
+  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
+  "ars_version": 2,
+  "ars_createdAt": "2026-10-14T18:39:23.172Z",
+  "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4",
+  "ars_modifiedAt": "2026-10-14T18:41:12.565Z",
+  "ars_modifiedBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
+}

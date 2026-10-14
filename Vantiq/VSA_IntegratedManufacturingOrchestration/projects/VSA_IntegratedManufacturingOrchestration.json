@@ -1,14 +1,35 @@
 {
   "ars_relationships" : [ ],
   "links" : [ {
+    "source" : "app/com.vantiqse.imo.Machines.MachineData",
+    "target" : "services/com.vantiqse.imo.Machines"
+  }, {
+    "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
+    "target" : "services/com.vantiqse.imo.PlantMES"
+  }, {
     "source" : "app/com.vantiqse.imo.Tugger.Fault",
     "target" : "services/com.vantiqse.imo.Tugger"
   }, {
     "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
     "target" : "services/com.vantiqse.imo.Tugger"
   }, {
+    "source" : "designmodel/com.vantiqse.imo.Design",
+    "target" : "services/com.vantiqse.imo.Machines"
+  }, {
+    "source" : "designmodel/com.vantiqse.imo.Design",
+    "target" : "services/com.vantiqse.imo.PlantMES"
+  }, {
+    "source" : "designmodel/com.vantiqse.imo.Design",
+    "target" : "services/com.vantiqse.imo.Seating"
+  }, {
+    "source" : "designmodel/com.vantiqse.imo.Design",
+    "target" : "services/com.vantiqse.imo.Tugger"
+  }, {
     "source" : "rule/com.vantiqse.imo.Tugger.OnTuggerMsg",
     "target" : "services/com.vantiqse.imo.Tugger"
+  }, {
+    "source" : "services/com.vantiqse.imo.Machines",
+    "target" : "document/com.vantiqse.imo.Machines.js"
   }, {
     "source" : "services/com.vantiqse.imo.PlantMES",
     "target" : "document/com.vantiqse.imo.PlantMES.js"
@@ -21,6 +42,15 @@
   }, {
     "source" : "services/com.vantiqse.imo.Tugger",
     "target" : "document/com.vantiqse.imo.Tugger.js"
+  }, {
+    "source" : "source/com.vantiqse.imo.PlantMES",
+    "target" : "app/com.vantiqse.imo.PlantMES.PlantMESData"
+  }, {
+    "source" : "source/com.vantiqse.imo.SupplierBMachines",
+    "target" : "app/com.vantiqse.imo.Machines.MachineData"
+  }, {
+    "source" : "source/com.vantiqse.imo.SupplierBMachines",
+    "target" : "sourceimpl/OPCUA"
   }, {
     "source" : "source/com.vantiqse.imo.SupplierBTugger",
     "target" : "rule/com.vantiqse.imo.Tugger.OnTuggerMsg"
@@ -63,42 +93,87 @@
   },
   "partitions" : [ ],
   "resources" : [ {
+    "label" : "OPCUA",
+    "name" : "OPCUA",
+    "resourceReference" : "/sourceimpls/OPCUA",
+    "type" : 69
+  }, {
+    "name" : "com.vantiqse.imo.Design",
+    "resourceReference" : "/system.designmodels/com.vantiqse.imo.Design",
+    "type" : 75
+  }, {
+    "label" : "com.vantiqse.imo.Machines",
+    "name" : "com.vantiqse.imo.Machines",
+    "resourceReference" : "/services/com.vantiqse.imo.Machines",
+    "type" : 63
+  }, {
+    "label" : "com.vantiqse.imo.Machines.MachineData",
+    "name" : "com.vantiqse.imo.Machines.MachineData",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Machines.MachineData",
+    "type" : 12
+  }, {
+    "isGenerated" : true,
+    "label" : "com.vantiqse.imo.Machines.js",
+    "name" : "com.vantiqse.imo.Machines.js",
+    "resourceReference" : "/documents/com.vantiqse.imo.Machines.js",
+    "type" : 19
+  }, {
     "label" : "com.vantiqse.imo.PlantMES",
     "name" : "com.vantiqse.imo.PlantMES",
     "resourceReference" : "/sources/com.vantiqse.imo.PlantMES",
     "type" : 4
   }, {
+    "label" : "com.vantiqse.imo.PlantMES",
     "name" : "com.vantiqse.imo.PlantMES",
     "resourceReference" : "/services/com.vantiqse.imo.PlantMES",
     "type" : 63
   }, {
+    "name" : "com.vantiqse.imo.PlantMES.PlantMESData",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.PlantMES.PlantMESData",
+    "type" : 12
+  }, {
     "isGenerated" : true,
+    "label" : "com.vantiqse.imo.PlantMES.js",
     "name" : "com.vantiqse.imo.PlantMES.js",
     "resourceReference" : "/documents/com.vantiqse.imo.PlantMES.js",
     "type" : 19
+  }, {
+    "name" : "com.vantiqse.imo.Seating",
+    "resourceReference" : "/services/com.vantiqse.imo.Seating",
+    "type" : 63
+  }, {
+    "label" : "com.vantiqse.imo.SupplierBMachines",
+    "name" : "com.vantiqse.imo.SupplierBMachines",
+    "resourceReference" : "/sources/com.vantiqse.imo.SupplierBMachines",
+    "type" : 4
   }, {
     "label" : "com.vantiqse.imo.SupplierBTugger",
     "name" : "com.vantiqse.imo.SupplierBTugger",
     "resourceReference" : "/sources/com.vantiqse.imo.SupplierBTugger",
     "type" : 4
   }, {
+    "label" : "com.vantiqse.imo.Tugger",
     "name" : "com.vantiqse.imo.Tugger",
     "resourceReference" : "/services/com.vantiqse.imo.Tugger",
     "type" : 63
   }, {
+    "label" : "com.vantiqse.imo.Tugger.Fault",
     "name" : "com.vantiqse.imo.Tugger.Fault",
     "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Tugger.Fault",
     "type" : 12
   }, {
+    "label" : "com.vantiqse.imo.Tugger.OnTuggerMsg",
     "name" : "com.vantiqse.imo.Tugger.OnTuggerMsg",
     "resourceReference" : "/rules/com.vantiqse.imo.Tugger.OnTuggerMsg",
     "type" : 2
   }, {
+    "label" : "com.vantiqse.imo.Tugger.Telemetry",
     "name" : "com.vantiqse.imo.Tugger.Telemetry",
     "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Tugger.Telemetry",
     "type" : 12
   }, {
     "isGenerated" : true,
+    "label" : "com.vantiqse.imo.Tugger.js",
     "name" : "com.vantiqse.imo.Tugger.js",
     "resourceReference" : "/documents/com.vantiqse.imo.Tugger.js",
     "type" : 19
@@ -122,45 +197,46 @@
     "type" : 2
   }, {
     "isPinned" : false,
-    "name" : "Rule 'com.vantiqse.imo.Tugger.OnTuggerMsg' @ 2026-10-14T17:48:53.313Z",
+    "name" : "com.vantiqse.imo.Design",
     "pane" : {
-      "address" : "R[3]"
+      "address" : "R[2]",
+      "isActive" : true,
+      "isActiveTool" : true
     },
+    "resourceKey" : "designmodel/com.vantiqse.imo.Design",
     "state" : 8,
-    "type" : 30
+    "type" : 121
   }, {
     "isPinned" : false,
     "name" : "com.vantiqse.imo.PlantMES",
     "pane" : {
       "address" : "R[0]"
     },
+    "resourceKey" : "source/com.vantiqse.imo.PlantMES",
+    "state" : 8,
+    "type" : 5
+  }, {
+    "isPinned" : false,
+    "name" : "com.vantiqse.imo.PlantMES",
+    "pane" : {
+      "address" : "R[1]"
+    },
     "resourceKey" : "services/com.vantiqse.imo.PlantMES",
     "state" : 8,
     "type" : 109
   }, {
     "isPinned" : false,
-    "name" : "com.vantiqse.imo.SupplierBTugger",
+    "name" : "com.vantiqse.imo.Seating",
     "pane" : {
-      "address" : "R[1]"
+      "address" : "R[3]"
     },
-    "resourceKey" : "source/com.vantiqse.imo.SupplierBTugger",
-    "state" : 8,
-    "type" : 5
-  }, {
-    "isPinned" : false,
-    "name" : "com.vantiqse.imo.Tugger",
-    "pane" : {
-      "address" : "R[2]",
-      "isActive" : true,
-      "isActiveTool" : true
-    },
-    "resourceKey" : "services/com.vantiqse.imo.Tugger",
+    "resourceKey" : "services/com.vantiqse.imo.Seating",
     "state" : 8,
     "type" : 109
   } ],
   "type" : "dev",
   "views" : [ {
     "name" : "Project Contents",
-    "projectToolKeys" : [ "errorviewer/Errors", "tiledock/Inactive Panes", "logviewer/Log Messages", "list/Project Contents", "error/Rule 'com.vantiqse.imo.Tugger.OnTuggerMsg' @ 2026-10-14T17:48:53.313Z", "services/com.vantiqse.imo.PlantMES", "subsourceeditor/com.vantiqse.imo.SupplierBTugger", "services/com.vantiqse.imo.Tugger" ]
+    "projectToolKeys" : [ "errorviewer/Errors", "tiledock/Inactive Panes", "logviewer/Log Messages", "list/Project Contents", "designmodel/com.vantiqse.imo.Design", "subsourceeditor/com.vantiqse.imo.PlantMES", "services/com.vantiqse.imo.PlantMES", "services/com.vantiqse.imo.Seating" ]
   } ]
 }

@@ -1,0 +1,84 @@
+{
+  "active" : true,
+  "ars_properties" : {
+    "additionalConfigProps" : [ "opcUAInformation.discoveryEndpoint", "opcUAInformation.securityPolicy", "opcUAInformation.monitoredItems" ]
+  },
+  "ars_relationships" : [ ],
+  "autoUnwind" : false,
+  "config" : {
+    "opcUAInformation" : {
+      "discoveryEndpoint" : "opc.tcp://localhost:4840/imo",
+      "identityAnonymous" : "true",
+      "messageSecurityMode" : "None",
+      "monitoredItems" : {
+        "CHG-1.ChargePct" : {
+          "nodeIdentifier" : "Machine.CHG-1.ChargePct",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-1.FaultCode" : {
+          "nodeIdentifier" : "Machine.CHG-1.FaultCode",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-1.State" : {
+          "nodeIdentifier" : "Machine.CHG-1.State",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-2.ChargePct" : {
+          "nodeIdentifier" : "Machine.CHG-2.ChargePct",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-2.FaultCode" : {
+          "nodeIdentifier" : "Machine.CHG-2.FaultCode",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-2.State" : {
+          "nodeIdentifier" : "Machine.CHG-2.State",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-3.ChargePct" : {
+          "nodeIdentifier" : "Machine.CHG-3.ChargePct",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-3.FaultCode" : {
+          "nodeIdentifier" : "Machine.CHG-3.FaultCode",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CHG-3.State" : {
+          "nodeIdentifier" : "Machine.CHG-3.State",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CONV-1.CartCount" : {
+          "nodeIdentifier" : "Machine.CONV-1.CartCount",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CONV-1.FaultCode" : {
+          "nodeIdentifier" : "Machine.CONV-1.FaultCode",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        },
+        "CONV-1.State" : {
+          "nodeIdentifier" : "Machine.CONV-1.State",
+          "nodeIdentifierType" : "s",
+          "nsu" : "urn:vantiqse:imo"
+        }
+      },
+      "securityPolicy" : "http://opcfoundation.org/UA/SecurityPolicy#None",
+      "storageDirectory" : "./opcuaStorage"
+    }
+  },
+  "isUnavailable" : false,
+  "messageType" : null,
+  "mockProcedures" : { },
+  "name" : "com.vantiqse.imo.SupplierBMachines",
+  "type" : "OPCUA"
+}

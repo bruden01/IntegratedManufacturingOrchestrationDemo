@@ -1,0 +1,64 @@
+{
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "9b2e6d13-7c44-4a8e-b1d0-2e5c8f7a3b02": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "lastZoomRequest": 0,
+      "scale": 6.2050596746693705,
+      "translate": [
+        526,
+        223.5
+      ]
+    },
+    "groupSettings": {
+      "appGroupOpenHash": {
+        "actions": true,
+        "filters": true,
+        "flowControl": true
+      },
+      "ctGroupOpenHash": {
+        "actions": true,
+        "mobile": true
+      },
+      "ctServiceOpen": false,
+      "serviceGroupOpenHash": {}
+    },
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
+  },
+  "ars_relationships": [],
+  "assembly": {
+    "EventStream": {
+      "configuration": {
+        "eventTypeName": "Quality",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Seating",
+        "parentStreams": []
+      },
+      "downstreamReferences": {},
+      "name": "EventStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "9b2e6d13-7c44-4a8e-b1d0-2e5c8f7a3b02"
+    }
+  },
+  "contextualizedAssembly": {},
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [
+    "collaborations"
+  ],
+  "name": "com.vantiqse.imo.Seating.Quality",
+  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
+  "ars_version": 2,
+  "ars_createdAt": "2026-10-14T18:41:02.317Z",
+  "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
+}
