@@ -1,4 +1,4 @@
-// Mock data. Replaced by Vantiq-backed state once the simulator is wired up.
+// Mock constants for the buffer and cost figures. The sequence board itself reads from Vantiq (see App.jsx).
 
 export const BASE_VEHICLES = [
   { seq: 2041, vin: '…7K1042', vehicle: 'Traveler · Terra Gray', seat: 'Vinyl · Black · Heated', status: 'On tugger' },

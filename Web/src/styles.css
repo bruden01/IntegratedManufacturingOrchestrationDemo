@@ -41,6 +41,7 @@ h2 { margin: 0; font: 600 22px var(--display); letter-spacing: 0.02em; }
 .status-item { display: flex; align-items: center; gap: 8px; font: 12px var(--mono); color: var(--muted); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .dot.ok { background: var(--teal); }
+.dot.crit { background: var(--red); }
 .tag-box { font: 12px var(--mono); color: var(--muted); border: 1px solid var(--line); padding: 4px 8px; }
 
 /* Bottom slide-out simulator drawer */

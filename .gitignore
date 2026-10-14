@@ -11,3 +11,7 @@ __pycache__/
 
 # SQLite files are rebuilt by the simulator
 Databases/data/
+
+# Local Vite environment (per developer)
+.env.local
+.env.production

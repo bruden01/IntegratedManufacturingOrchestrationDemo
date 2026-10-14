@@ -1,0 +1,13 @@
+// Returns the rows of a JDBC source query result as a flat array, whether the source delivered them as an array of rows or wrapped in an outer array.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Board.rowsOf(res DESCRIPTION "Result of SELECT FROM SOURCE against a JDBC source"): Object Array
+
+var rows = []
+if (res != null && typeOf(res) == "Array") {
+    rows = res
+    if (res.size() > 0 && typeOf(res[0]) == "Array") {
+        rows = res[0]
+    }
+}
+return rows

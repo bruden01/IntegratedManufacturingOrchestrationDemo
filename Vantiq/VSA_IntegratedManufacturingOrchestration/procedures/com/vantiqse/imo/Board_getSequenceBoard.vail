@@ -1,0 +1,72 @@
+// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence.
+package com.vantiqse.imo
+import source com.vantiqse.imo.PlantMESDB
+import source com.vantiqse.imo.SupplierADB
+import source com.vantiqse.imo.SupplierBDB
+
+STATELESS PROCEDURE Board.getSequenceBoard(): Object
+
+var ordersRes = SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin, vehicle, seat_spec, rev, need_in_sec FROM build_orders ORDER BY seq"
+var seatSetsRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, stage, hold, defect FROM seat_sets"
+var inventoryRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin, seat_spec, on_hand, reserved FROM seat_inventory ORDER BY bin"
+var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.seq AS seq, a.tugger_id AS tugger_id FROM assignments a"
+var tuggersRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id"
+
+var orders = Board.rowsOf(ordersRes)
+var seatSets = Board.rowsOf(seatSetsRes)
+var inventory = Board.rowsOf(inventoryRes)
+var assignments = Board.rowsOf(assignmentsRes)
+var tuggers = Board.rowsOf(tuggersRes)
+
+var seatByVin = {}
+for (s in seatSets) {
+    seatByVin[s.vin] = s
+}
+var tuggerById = {}
+for (t in tuggers) {
+    tuggerById[t.id] = t
+}
+var tuggerBySeq = {}
+for (a in assignments) {
+    tuggerBySeq[format("{0}", a.seq)] = a.tugger_id
+}
+
+var counts = {QUEUED: 0, PICKING: 0, SEQUENCED: 0, STAGED: 0, ON_TUGGER: 0}
+var rows = []
+var rev = 0
+var stage = null
+var hold = false
+var defect = null
+var tuggerId = null
+var fault = null
+var seat = null
+var tugger = null
+for (o in orders) {
+    stage = "QUEUED"
+    hold = false
+    defect = null
+    seat = seatByVin[o.vin]
+    if (seat != null) {
+        stage = seat.stage
+        hold = seat.hold == 1
+        defect = seat.defect
+    }
+    tuggerId = tuggerBySeq[format("{0}", o.seq)]
+    fault = null
+    if (tuggerId != null) {
+        tugger = tuggerById[tuggerId]
+        if (tugger != null && tugger.state == "FAULT") {
+            fault = tugger.fault_code
+        }
+    }
+    if (counts.has(stage)) {
+        counts[stage] = counts[stage] + 1
+    }
+    if (o.rev > rev) {
+        rev = o.rev
+    }
+    rows.push({seq: o.seq, vin: o.vin, vehicle: o.vehicle, seatSpec: o.seat_spec, needInSec: o.need_in_sec, stage: stage, hold: hold, defect: defect, tugger: tuggerId, tuggerFault: fault})
+}
+
+var result = {rev: rev, rows: rows, stageCounts: counts, tuggers: tuggers, inventory: inventory}
+return result

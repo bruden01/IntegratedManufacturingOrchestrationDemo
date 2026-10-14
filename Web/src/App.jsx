@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import Vantiq from './services/vantiq.js';
+import { useAuth } from './contexts/AuthContext.jsx';
 import {
-  BASE_VEHICLES,
-  NEED_SECONDS,
   BASE_SLACK_SECONDS,
   DAMAGE_SLACK_COST,
   TUGGER_SLACK_COST,
@@ -9,6 +9,11 @@ import {
   EVENT_SAMPLE,
   SOURCES,
 } from './data.js';
+
+// Vantiq procedure that joins the plant MES, Supplier A and Supplier B systems into the board.
+const BOARD_PROCEDURE = 'com.vantiqse.imo.Board.getSequenceBoard';
+const BOARD_POLL_MS = 3000;
+const STAGE_LABEL = { QUEUED: 'Queued', PICKING: 'Picking', SEQUENCED: 'Sequenced', STAGED: 'Staged', ON_TUGGER: 'On tugger' };
 
 const SIM_URL = import.meta.env.VITE_SIM_URL || 'http://127.0.0.1:8765';
 const SIDEBAR_WIDTH = 200;
@@ -44,6 +49,9 @@ export default function App() {
   const [n, setN] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [view, setView] = useState('dashboard');
+  const { profile, handleLogout } = useAuth();
+  const [board, setBoard] = useState(null);
+  const [boardError, setBoardError] = useState('');
   const [costPerMin, setCostPerMin] = useState(() => {
     try {
       const v = localStorage.getItem('cost-per-min');
@@ -147,6 +155,18 @@ export default function App() {
     try { localStorage.setItem('sim-tab-left', String(Math.round(next))); } catch { /* ignore */ }
   };
 
+  // The board reads the three systems of record through Vantiq; the simulator keeps them current.
+  useEffect(() => {
+    let stopped = false;
+    const load = () =>
+      Vantiq.execute(BOARD_PROCEDURE)
+        .then((b) => { if (!stopped) { setBoard(b); setBoardError(''); } })
+        .catch((e) => { if (!stopped) setBoardError(e.message || 'Could not read the board from Vantiq'); });
+    load();
+    const id = setInterval(load, BOARD_POLL_MS);
+    return () => { stopped = true; clearInterval(id); };
+  }, []);
+
   // Tell the simulator to publish the event. The dashboard still runs its own mock
   // until it reads state from Vantiq, so a failure here is shown but not fatal.
   const [simError, setSimError] = useState(false);
@@ -175,39 +195,34 @@ export default function App() {
   const watch = slackSec < WATCH_THRESHOLD_SECONDS;
   const handled = Object.values(flags).filter(Boolean).length;
 
-  const vehicles = BASE_VEHICLES.map((r) => ({ vin: r.vin, vehicle: r.vehicle, seat: r.seat }));
-  if (flags.reorder) [vehicles[5], vehicles[7]] = [vehicles[7], vehicles[5]];
-
-  const rows = BASE_VEHICLES.map((r, i) => {
-    let status = r.status;
-    let tone = status === 'Queued' || status === 'Picking' ? 'neutral' : 'ok';
-    let note = '';
-    let need = NEED_SECONDS[i];
-    if (flags.reorder && (i === 5 || i === 7)) {
-      note = i === 5 ? 'Pulled forward by build-order rev 118' : 'Pushed back by build-order rev 118';
-      tone = 'act';
-      status = 'Re-sequenced';
-    }
-    if (flags.damage && i === 3) {
-      note = 'Replacement from buffer B-14';
-      tone = 'act';
-      status = 'Re-picked';
-    }
-    if (flags.tugger && (i === 1 || i === 2)) {
-      note = 'Moved from tugger T3 to T1';
-      tone = 'act';
-      status = 'Reassigned';
-      need -= TUGGER_SLACK_COST;
-    }
-    return { seq: r.seq, ...vehicles[i], note, status, tone, need: mmss(need), hot: note !== '' };
+  const rows = (board?.rows || []).map((r) => {
+    const faulted = r.tuggerFault ? `Tugger ${r.tugger} fault ${r.tuggerFault}` : '';
+    const held = r.hold ? `Hold: ${r.defect || 'quality'}` : '';
+    const note = [held, faulted].filter(Boolean).join(' · ');
+    const status = r.hold ? 'Held' : STAGE_LABEL[r.stage] || r.stage;
+    const tone = note ? 'act' : r.stage === 'QUEUED' || r.stage === 'PICKING' ? 'neutral' : 'ok';
+    return {
+      seq: r.seq,
+      vin: r.vin,
+      vehicle: r.vehicle,
+      seat: r.seatSpec,
+      note,
+      status,
+      tone,
+      need: mmss(Math.max(0, Math.round(r.needInSec))),
+      hot: note !== '',
+    };
   });
 
+  const counts = board?.stageCounts || {};
+  const anyHold = (board?.rows || []).some((r) => r.hold);
+  const anyTuggerFault = (board?.rows || []).some((r) => r.tuggerFault);
   const stages = [
-    { name: 'Pick', count: 4, note: '', alert: false },
-    { name: 'Sequence', count: 4, note: flags.damage ? 'swap B-14' : '', alert: flags.damage },
-    { name: 'Stage', count: 5, note: '', alert: false },
-    { name: 'Tugger', count: 6, note: flags.tugger ? 'T3 down' : '', alert: flags.tugger },
-    { name: 'Line-side', count: 5, note: '', alert: false },
+    { name: 'Pick', count: (counts.QUEUED || 0) + (counts.PICKING || 0), note: '', alert: false },
+    { name: 'Sequence', count: counts.SEQUENCED || 0, note: anyHold ? 'on hold' : '', alert: anyHold },
+    { name: 'Stage', count: counts.STAGED || 0, note: '', alert: false },
+    { name: 'Tugger', count: counts.ON_TUGGER || 0, note: anyTuggerFault ? 'fault' : '', alert: anyTuggerFault },
+    { name: 'Line-side', count: 0, note: '', alert: false },
   ];
 
   const fullLog = [...log, ...INITIAL_LOG];
@@ -234,8 +249,10 @@ export default function App() {
           <h1>JIS Control Tower</h1>
         </div>
         <div className="header-status">
-          <span className="status-item"><i className="dot ok" />Build-order feed · rev {flags.reorder ? '118' : '117'}</span>
-          <span className="status-item"><i className="dot ok" />3 sources connected</span>
+          <span className="status-item"><i className="dot ok" />Build-order feed · rev {board ? board.rev : '—'}</span>
+          <span className="status-item"><i className={`dot ${boardError ? 'crit' : 'ok'}`} />{boardError ? 'Systems unreachable' : '3 systems connected'}</span>
+          <span className="status-item mono">{profile?.username || profile?.email || ''}</span>
+          <button className="btn btn-ghost" onClick={handleLogout}>Sign out</button>
         </div>
       </header>
 
@@ -274,7 +291,7 @@ export default function App() {
         </div>
         <div className="kpi">
           <div className="kpi-label">Seat sets in flight</div>
-          <div className="kpi-value">24</div>
+          <div className="kpi-value">{board ? board.rows.length : '—'}</div>
           <div className="muted">Next 2 hours of the build order</div>
         </div>
         <div className="kpi">
@@ -300,6 +317,8 @@ export default function App() {
               <div className="row row-head">
                 <div>Seq</div><div>VIN</div><div>Vehicle</div><div>Seat set</div><div>Need in</div><div>Status</div>
               </div>
+              {boardError && <div className="row"><div className="muted">Could not read the board from Vantiq: {boardError}</div></div>}
+              {!boardError && !board && <div className="row"><div className="muted">Reading the systems of record…</div></div>}
               {rows.map((r) => (
                 <div key={r.seq} className={`row${r.hot ? ' hot' : ''}`}>
                   <div className="mono muted">{r.seq}</div>
