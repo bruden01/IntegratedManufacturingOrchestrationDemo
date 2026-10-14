@@ -1,0 +1,16 @@
+// Maps a Plant MES build-order message (MQTT) to the normalized event. A revision becomes BuildOrderRevised.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Events.fromBuildOrder(event REQUIRED DESCRIPTION "The build-order message from the plant MES"): Object
+
+var e = Events.unwrap(event)
+var t = "BuildOrderUpdated"
+if (e.reason == "revision") {
+    t = "BuildOrderRevised"
+}
+var count = 0
+if (e.vehicles != null) {
+    count = e.vehicles.size()
+}
+var result = {type: t, source: "plant-mes/mqtt", ts: e.ts, detail: {rev: e.rev, reason: e.reason, changes: e.changes, vehicleCount: count}}
+return result

@@ -1,0 +1,8 @@
+// Maps a Supplier B tugger Telemetry event (MQTT) to the normalized event. The station is the tugger's zone.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Events.fromTelemetry(event REQUIRED DESCRIPTION "The tugger Telemetry event"): Object
+
+var e = Events.unwrap(event)
+var result = {type: "TuggerPosition", station: e.zone, source: "supplier-b/mqtt", ts: e.ts, detail: {tugger: e.tugger, state: e.state, position: e.position, speedMps: e.speedMps, carrying: e.carrying, battery: e.battery}}
+return result

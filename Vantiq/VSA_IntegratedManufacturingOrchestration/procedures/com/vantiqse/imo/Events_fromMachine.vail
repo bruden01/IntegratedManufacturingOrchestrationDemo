@@ -1,0 +1,21 @@
+// Maps a Supplier B machine data message (OPC UA node change) to the normalized event. Splits the node id Machine.<id>.<field>.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Events.fromMachine(event REQUIRED DESCRIPTION "The OPC UA node change delivered by the OPC UA source"): Object
+
+var e = Events.unwrap(event)
+var parts = e.nodeIdentifier.split(".")
+var machine = parts[1]
+var field = parts[2]
+var t = "MachineReading"
+if (field == "FaultCode" && e.dataValue != null && e.dataValue != "") {
+    if (machine.startsWith("CHG")) {
+        t = "ChargerFault"
+    } else {
+        t = "ConveyorJam"
+    }
+} else if (field == "State") {
+    t = "MachineStateChanged"
+}
+var result = {type: t, station: machine, source: "supplier-b/opcua", ts: now(), detail: {machine: machine, field: field, value: e.dataValue}}
+return result

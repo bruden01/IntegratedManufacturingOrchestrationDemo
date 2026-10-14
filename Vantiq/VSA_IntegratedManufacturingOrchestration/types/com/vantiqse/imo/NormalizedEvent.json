@@ -1,0 +1,29 @@
+{
+  "name": "com.vantiqse.imo.NormalizedEvent",
+  "role": "schema",
+  "properties": {
+    "type": {
+      "type": "String",
+      "required": true
+    },
+    "vin": {
+      "type": "String"
+    },
+    "station": {
+      "type": "String"
+    },
+    "source": {
+      "type": "String",
+      "required": true
+    },
+    "ts": {
+      "type": "DateTime"
+    },
+    "detail": {
+      "type": "Object"
+    }
+  },
+  "namespace": "VSA_IntegratedManufacturingOrchestration",
+  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
+  "ars_version": 1
+}

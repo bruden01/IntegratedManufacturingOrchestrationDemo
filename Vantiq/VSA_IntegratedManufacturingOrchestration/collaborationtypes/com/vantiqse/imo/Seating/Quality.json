@@ -40,13 +40,37 @@
         "eventTypeName": "Quality",
         "inboundResource": "services",
         "inboundResourceId": "com.vantiqse.imo.Seating",
-        "parentStreams": []
+        "childStreams": [
+          "Normalize"
+        ]
       },
       "downstreamReferences": {},
       "name": "EventStream",
       "pattern": "EventStream",
       "patternVersion": 5,
       "uuid": "9b2e6d13-7c44-4a8e-b1d0-2e5c8f7a3b02"
+    },
+    "Normalize": {
+      "configuration": {
+        "transformation": "com.vantiqse.imo.Events.fromQuality",
+        "childStreams": [
+          "PublishNormalized"
+        ]
+      },
+      "name": "Normalize",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "description": "Maps the seating Quality event to the normalized event shape."
+    },
+    "PublishNormalized": {
+      "configuration": {
+        "service": "com.vantiqse.imo.Events",
+        "eventTypeName": "NormalizedEvent"
+      },
+      "name": "PublishNormalized",
+      "pattern": "PublishToService",
+      "patternVersion": 5,
+      "description": "Publishes the normalized event to the Events service."
     }
   },
   "contextualizedAssembly": {},
@@ -58,7 +82,7 @@
   ],
   "name": "com.vantiqse.imo.Seating.Quality",
   "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_version": 2,
+  "ars_version": 4,
   "ars_createdAt": "2026-10-14T18:41:02.317Z",
   "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
 }

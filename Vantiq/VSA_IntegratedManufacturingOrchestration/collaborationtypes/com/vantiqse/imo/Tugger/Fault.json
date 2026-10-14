@@ -1,55 +1,85 @@
 {
-  "active" : true,
-  "ars_properties" : {
-    "dataVersion" : 5,
-    "graph" : {
-      "coordinates" : {
-        "755548a9-54cb-480d-aea1-a601dee8509f" : {
-          "x" : 0,
-          "y" : 0
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "755548a9-54cb-480d-aea1-a601dee8509f": {
+          "x": 0,
+          "y": 0
         }
       },
-      "lastZoomRequest" : 0,
-      "scale" : 6.2050596746693705,
-      "translate" : [ 526, 223.5 ]
+      "lastZoomRequest": 0,
+      "scale": 6.2050596746693705,
+      "translate": [
+        526,
+        223.5
+      ]
     },
-    "groupSettings" : {
-      "appGroupOpenHash" : {
-        "actions" : true,
-        "filters" : true,
-        "flowControl" : true
+    "groupSettings": {
+      "appGroupOpenHash": {
+        "actions": true,
+        "filters": true,
+        "flowControl": true
       },
-      "ctGroupOpenHash" : {
-        "actions" : true,
-        "mobile" : true
+      "ctGroupOpenHash": {
+        "actions": true,
+        "mobile": true
       },
-      "ctServiceOpen" : false,
-      "serviceGroupOpenHash" : { }
+      "ctServiceOpen": false,
+      "serviceGroupOpenHash": {}
     },
-    "isHidden" : false,
-    "paletteWidth" : 170,
-    "propertyWidth" : 280
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
   },
-  "ars_relationships" : [ ],
-  "assembly" : {
-    "EventStream" : {
-      "configuration" : {
-        "eventTypeName" : "Fault",
-        "inboundResource" : "services",
-        "inboundResourceId" : "com.vantiqse.imo.Tugger",
-        "parentStreams" : [ ]
+  "ars_relationships": [],
+  "assembly": {
+    "EventStream": {
+      "configuration": {
+        "eventTypeName": "Fault",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Tugger",
+        "childStreams": [
+          "Normalize"
+        ]
       },
-      "downstreamReferences" : { },
-      "name" : "EventStream",
-      "pattern" : "EventStream",
-      "patternVersion" : 5,
-      "uuid" : "755548a9-54cb-480d-aea1-a601dee8509f"
+      "downstreamReferences": {},
+      "name": "EventStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "755548a9-54cb-480d-aea1-a601dee8509f"
+    },
+    "Normalize": {
+      "configuration": {
+        "transformation": "com.vantiqse.imo.Events.fromFault",
+        "childStreams": [
+          "PublishNormalized"
+        ]
+      },
+      "name": "Normalize",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "description": "Maps the tugger Fault event to the normalized event shape."
+    },
+    "PublishNormalized": {
+      "configuration": {
+        "service": "com.vantiqse.imo.Events",
+        "eventTypeName": "NormalizedEvent"
+      },
+      "name": "PublishNormalized",
+      "pattern": "PublishToService",
+      "patternVersion": 5,
+      "description": "Publishes the normalized event to the Events service."
     }
   },
-  "contextualizedAssembly" : { },
-  "disableBadging" : false,
-  "isComponent" : false,
-  "isEventHandler" : true,
-  "keyTypes" : [ "collaborations" ],
-  "name" : "com.vantiqse.imo.Tugger.Fault"
+  "contextualizedAssembly": {},
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [
+    "collaborations"
+  ],
+  "name": "com.vantiqse.imo.Tugger.Fault",
+  "ars_version": 4
 }

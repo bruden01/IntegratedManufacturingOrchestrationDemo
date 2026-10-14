@@ -1,0 +1,12 @@
+// Maps a Supplier A seating Quality event (vision check) to the normalized event.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Events.fromQuality(event REQUIRED DESCRIPTION "The Quality event posted by the seating supplier"): Object
+
+var e = Events.unwrap(event)
+var t = "QualityPassed"
+if (e.result == "FAIL") {
+    t = "QualityFailed"
+}
+var result = {type: t, vin: e.vin, station: e.station, source: "supplier-a/rest", ts: e.ts, detail: {seq: e.seq, result: e.result, defect: e.defect}}
+return result

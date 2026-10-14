@@ -1,0 +1,61 @@
+{
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "c7a4e0b2-5d1f-4e63-9a28-3b6f1d8e9c01": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "lastZoomRequest": 0,
+      "scale": 6.2050596746693705,
+      "translate": [
+        526,
+        223.5
+      ]
+    },
+    "groupSettings": {
+      "appGroupOpenHash": {
+        "actions": true,
+        "filters": true,
+        "flowControl": true
+      },
+      "ctGroupOpenHash": {
+        "actions": true,
+        "mobile": true
+      },
+      "ctServiceOpen": false,
+      "serviceGroupOpenHash": {}
+    },
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
+  },
+  "ars_relationships": [],
+  "assembly": {
+    "EventStream": {
+      "configuration": {
+        "eventTypeName": "NormalizedEvent",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Events",
+        "schema": "com.vantiqse.imo.NormalizedEvent",
+        "parentStreams": []
+      },
+      "downstreamReferences": {},
+      "name": "EventStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "c7a4e0b2-5d1f-4e63-9a28-3b6f1d8e9c01"
+    }
+  },
+  "contextualizedAssembly": {},
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [
+    "collaborations"
+  ],
+  "name": "com.vantiqse.imo.Events.NormalizedEvent"
+}

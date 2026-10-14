@@ -1,0 +1,24 @@
+// Maps a Supplier A seating PartStatus event to the normalized event. The stage becomes the event type.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Events.fromPartStatus(event REQUIRED DESCRIPTION "The PartStatus event posted by the seating supplier"): Object
+
+var e = Events.unwrap(event)
+var t = "PartStatusChanged"
+if (e.stage == "QUEUED") {
+    t = "PartQueued"
+} else if (e.stage == "PICKING") {
+    t = "PartPicking"
+} else if (e.stage == "SEQUENCED") {
+    t = "PartSequenced"
+} else if (e.stage == "STAGED") {
+    t = "PartStaged"
+} else if (e.stage == "ON_TUGGER") {
+    t = "PartOnTugger"
+} else if (e.stage == "LINE_SIDE") {
+    t = "PartDelivered"
+} else if (e.stage == "HOLD") {
+    t = "PartHeld"
+}
+var result = {type: t, vin: e.vin, station: e.station, source: "supplier-a/rest", ts: e.ts, detail: {seq: e.seq, stage: e.stage, tugger: e.tugger, needInSec: e.needInSec}}
+return result

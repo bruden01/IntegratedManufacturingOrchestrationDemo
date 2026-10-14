@@ -1,0 +1,8 @@
+// Maps a Supplier B tugger Fault event (MQTT) to the normalized event.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Events.fromFault(event REQUIRED DESCRIPTION "The tugger Fault event"): Object
+
+var e = Events.unwrap(event)
+var result = {type: "TuggerFault", source: "supplier-b/mqtt", ts: e.ts, detail: {tugger: e.tugger, code: e.code, description: e.description, carrying: e.carrying}}
+return result

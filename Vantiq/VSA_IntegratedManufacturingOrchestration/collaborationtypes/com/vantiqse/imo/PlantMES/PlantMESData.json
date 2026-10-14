@@ -1,63 +1,85 @@
 {
-  "active" : true,
-  "ars_properties" : {
-    "dataVersion" : 5,
-    "graph" : {
-      "coordinates" : {
-        "c58f3ece-1657-420a-8eed-a615c7ea16a1" : {
-          "x" : 0,
-          "y" : 0.14672686230248308
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "c58f3ece-1657-420a-8eed-a615c7ea16a1": {
+          "x": 0,
+          "y": 0.14672686230248308
         }
       },
-      "lastZoomRequest" : 0,
-      "scale" : 6.815384615384615,
-      "translate" : [ 526, 221.5 ]
+      "lastZoomRequest": 0,
+      "scale": 6.815384615384615,
+      "translate": [
+        526,
+        221.5
+      ]
     },
-    "groupSettings" : {
-      "appGroupOpenHash" : {
-        "actions" : true,
-        "filters" : true,
-        "flowControl" : true
+    "groupSettings": {
+      "appGroupOpenHash": {
+        "actions": true,
+        "filters": true,
+        "flowControl": true
       },
-      "ctGroupOpenHash" : {
-        "actions" : true,
-        "mobile" : true
+      "ctGroupOpenHash": {
+        "actions": true,
+        "mobile": true
       },
-      "ctServiceOpen" : false,
-      "serviceGroupOpenHash" : { }
+      "ctServiceOpen": false,
+      "serviceGroupOpenHash": {}
     },
-    "isHidden" : false,
-    "paletteWidth" : 170,
-    "propertyWidth" : 280
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
   },
-  "ars_relationships" : [ ],
-  "assembly" : {
-    "Initiate" : {
-      "configuration" : {
-        "childStreams" : null,
-        "condition" : null,
-        "eventTypeName" : null,
-        "inboundResource" : "sources",
-        "inboundResourceId" : "com.vantiqse.imo.PlantMES",
-        "op" : null,
-        "outboundResource" : null,
-        "outboundResourceConfig" : null,
-        "outboundResourceId" : null,
-        "parentStreams" : [ ],
-        "schema" : null,
-        "upsert" : false
+  "ars_relationships": [],
+  "assembly": {
+    "Initiate": {
+      "configuration": {
+        "childStreams": [
+          "Normalize"
+        ],
+        "inboundResource": "sources",
+        "inboundResourceId": "com.vantiqse.imo.PlantMES",
+        "upsert": false
       },
-      "downstreamReferences" : { },
-      "name" : "Initiate",
-      "pattern" : "EventStream",
-      "patternVersion" : 5,
-      "uuid" : "c58f3ece-1657-420a-8eed-a615c7ea16a1"
+      "downstreamReferences": {},
+      "name": "Initiate",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "c58f3ece-1657-420a-8eed-a615c7ea16a1"
+    },
+    "Normalize": {
+      "configuration": {
+        "transformation": "com.vantiqse.imo.Events.fromBuildOrder",
+        "childStreams": [
+          "PublishNormalized"
+        ]
+      },
+      "name": "Normalize",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "description": "Maps the plant MES build-order message to the normalized event shape."
+    },
+    "PublishNormalized": {
+      "configuration": {
+        "service": "com.vantiqse.imo.Events",
+        "eventTypeName": "NormalizedEvent"
+      },
+      "name": "PublishNormalized",
+      "pattern": "PublishToService",
+      "patternVersion": 5,
+      "description": "Publishes the normalized event to the Events service."
     }
   },
-  "contextualizedAssembly" : { },
-  "disableBadging" : false,
-  "isComponent" : false,
-  "isEventHandler" : true,
-  "keyTypes" : [ "collaborations" ],
-  "name" : "com.vantiqse.imo.PlantMES.PlantMESData"
+  "contextualizedAssembly": {},
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [
+    "collaborations"
+  ],
+  "name": "com.vantiqse.imo.PlantMES.PlantMESData",
+  "ars_version": 4
 }

@@ -40,13 +40,37 @@
         "eventTypeName": "PartStatus",
         "inboundResource": "services",
         "inboundResourceId": "com.vantiqse.imo.Seating",
-        "parentStreams": []
+        "childStreams": [
+          "Normalize"
+        ]
       },
       "downstreamReferences": {},
       "name": "EventStream",
       "pattern": "EventStream",
       "patternVersion": 5,
       "uuid": "4f1a7c52-0b0e-4d0a-9d52-6a1f3f0b8a01"
+    },
+    "Normalize": {
+      "configuration": {
+        "transformation": "com.vantiqse.imo.Events.fromPartStatus",
+        "childStreams": [
+          "PublishNormalized"
+        ]
+      },
+      "name": "Normalize",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "description": "Maps the seating PartStatus event to the normalized event shape."
+    },
+    "PublishNormalized": {
+      "configuration": {
+        "service": "com.vantiqse.imo.Events",
+        "eventTypeName": "NormalizedEvent"
+      },
+      "name": "PublishNormalized",
+      "pattern": "PublishToService",
+      "patternVersion": 5,
+      "description": "Publishes the normalized event to the Events service."
     }
   },
   "contextualizedAssembly": {},
@@ -58,7 +82,7 @@
   ],
   "name": "com.vantiqse.imo.Seating.PartStatus",
   "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_version": 2,
+  "ars_version": 4,
   "ars_createdAt": "2026-10-14T18:41:01.792Z",
   "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
 }

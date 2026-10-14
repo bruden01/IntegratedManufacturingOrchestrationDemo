@@ -1,0 +1,19 @@
+{
+  "active": true,
+  "agentFrameworkVersion": "1.1",
+  "ars_relationships": [],
+  "eventTypes": {
+    "NormalizedEvent": {
+      "direction": "INBOUND",
+      "eventSchema": "com.vantiqse.imo.NormalizedEvent",
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Events.NormalizedEvent/EventStream",
+      "isPrivate": false,
+      "isReliable": false
+    }
+  },
+  "isAgent": false,
+  "name": "com.vantiqse.imo.Events",
+  "replicationFactor": 1,
+  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
+  "ars_version": 2
+}
