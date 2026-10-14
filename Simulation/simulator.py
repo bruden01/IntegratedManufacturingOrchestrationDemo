@@ -101,8 +101,24 @@ class Publisher:
         if not dry_run:
             import paho.mqtt.client as mqtt
             self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f'imo-sim-{int(time.time())}')
-            self.client.connect(host, port, keepalive=30)
+            self.mqtt_connected = False
+            self.client.on_connect = self._on_connect
+            self.client.on_disconnect = self._on_disconnect
+            # Bounded, so a long broker outage cannot grow the queue without limit.
+            self.client.max_queued_messages_set(1000)
+            # A broker that is down must not stop the REST, OPC UA and database feeds: connect in the background
+            # and let paho keep retrying.
+            self.client.connect_async(host, port, keepalive=30)
             self.client.loop_start()
+
+    def _on_connect(self, client, userdata, flags, reason_code, properties):
+        self.mqtt_connected = not reason_code.is_failure
+        print(f'MQTT broker: {"connected" if self.mqtt_connected else f"refused ({reason_code})"}', flush=True)
+
+    def _on_disconnect(self, client, userdata, flags, reason_code, properties):
+        if self.mqtt_connected:
+            print('MQTT broker: disconnected, retrying', flush=True)
+        self.mqtt_connected = False
 
     def publish(self, topic, payload):
         self.count += 1
@@ -393,6 +409,7 @@ class Simulator:
                 'messagesPublished': self.pub.count,
                 'scenariosTriggered': list(self.scenarios),
                 'dryRun': self.pub.dry_run,
+                'mqttConnected': None if self.pub.dry_run else self.pub.mqtt_connected,
                 'seatingPostErrors': self.pub.post_errors,
                 'databaseWriteErrors': self.erp.errors if self.erp else None,
                 'machineFaults': dict(self.machine_faults),
