@@ -1,0 +1,18 @@
+package com.vantiqse.imo.Tugger
+RULE OnTuggerMsg
+WHEN EVENT OCCURS ON "/sources/com.vantiqse.imo.SupplierBTugger"
+
+// parse the topic parts
+var arr = event.topic.split("/")
+var tid = arr[arr.size() - 2]
+var channel = arr[arr.size() - 1]
+
+if (channel == "telemetry"){
+	publish event.value to SERVICE EVENT "com.vantiqse.imo.Tugger/Telemetry"
+} else if (channel == "fault"){
+	publish event.value to SERVICE EVENT "com.vantiqse.imo.Tugger/Fault"
+} else {
+	log.warn("Should not see this")
+}
+
+

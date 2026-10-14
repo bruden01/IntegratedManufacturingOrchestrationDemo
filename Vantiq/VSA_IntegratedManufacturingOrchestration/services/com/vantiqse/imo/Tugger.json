@@ -1,0 +1,40 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : [ ]
+  },
+  "ars_relationships" : [ ],
+  "description" : null,
+  "eventTypes" : {
+    "Fault" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.Tugger.Fault/EventStream",
+      "isPrivate" : true,
+      "isReliable" : false
+    },
+    "Telemetry" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.Tugger.Telemetry/EventStream",
+      "isPrivate" : true,
+      "isReliable" : false
+    }
+  },
+  "globalType" : null,
+  "interface" : [ ],
+  "internalEventHandlers" : [ "/rules/com.vantiqse.imo.Tugger.OnTuggerMsg" ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.Tugger",
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : { }
+}

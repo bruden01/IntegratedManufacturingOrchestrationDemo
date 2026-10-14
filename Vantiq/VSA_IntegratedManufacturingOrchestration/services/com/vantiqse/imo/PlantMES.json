@@ -1,0 +1,13 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "ars_relationships" : [ ],
+  "interface" : [ ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.PlantMES",
+  "replicationFactor" : 1
+}
