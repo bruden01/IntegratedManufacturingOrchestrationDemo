@@ -97,6 +97,8 @@ export default function App() {
   const [incidents, setIncidents] = useState({});
   // Pick-queue changes after a build-order revision, keyed by VIN: {note, confirmed}.
   const [moves, setMoves] = useState({});
+  // Seconds from the triggering event to Vantiq's action, measured from the timestamps on the last UI update.
+  const [eventToAction, setEventToAction] = useState(null);
   const [costPerMin, setCostPerMin] = useState(() => {
     try {
       const v = localStorage.getItem('cost-per-min');
@@ -216,6 +218,12 @@ export default function App() {
   useEffect(
     () =>
       subscribeToUIUpdates((u) => {
+        // The plant message (or the later of the failed scan and the hold) to the moment Vantiq acted.
+        const from = u.kind === 'BuildOrderChanged' ? u.eventTs : u.kind === 'ReplacementReserved' || u.kind === 'NoReplacementAvailable' ? [u.failedTs, u.heldTs].sort().pop() : null;
+        if (from && u.ts) {
+          const sec = (Date.parse(u.ts) - Date.parse(from)) / 1000;
+          if (sec >= 0 && sec < 600) setEventToAction(sec);
+        }
         if (u.kind === 'BuildOrderChanged') {
           setMoves((prev) => {
             const next = { ...prev };
@@ -279,6 +287,7 @@ export default function App() {
     setLog([]);
     setIncidents({});
     setMoves({});
+    setEventToAction(null);
     setN(0);
   };
 
@@ -398,7 +407,7 @@ export default function App() {
         </div>
         <div className="kpi">
           <div className="kpi-label">Event to action</div>
-          <div className="kpi-value">{n > 0 ? '1.8 s' : '—'}</div>
+          <div className="kpi-value">{eventToAction === null ? '—' : `${eventToAction.toFixed(1)} s`}</div>
           <div className="muted">Cost of one line-stop minute: {money(costPerMin)}</div>
         </div>
       </section>

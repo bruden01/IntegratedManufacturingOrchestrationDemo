@@ -34,5 +34,5 @@ if (changes != null) {
 }
 
 var summary = "Vantiq re-prioritized Supplier A's pick queue: " + parts.join(", ")
-var result = {kind: "BuildOrderChanged", ts: now(), rev: rev, moved: moved, summary: summary}
+var result = {kind: "BuildOrderChanged", ts: now(), eventTs: event.ts, rev: rev, moved: moved, summary: summary}
 return result

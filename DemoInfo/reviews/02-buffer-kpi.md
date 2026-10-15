@@ -30,7 +30,7 @@ Answer each one by filling in the line under it (a one-word answer or "go with y
 5. **The script's example numbers** (14:20 to 11:40, then 6:10). Reproduce them, or let the real numbers show and change the script to match? Recommendation: let real numbers show and update the script.
    Your answer:
 6. **"Event to action" KPI.** Fix it in this same change using real timestamps, or leave it mock for now? Recommendation: fix it here.
-   Your answer:
+   Your answer: Done (2026-10-15): the tile shows seconds from the plant message (or the later of failed scan and hold) to Vantiq's action, from the UI update timestamps. The buffer itself (items 1 to 5) is still mock.
 
 ## Done when
 The tightest buffer and the risk tile come from Vantiq data, the countdown ticks, and a damaged seat or a tugger fault visibly reduces the buffer.

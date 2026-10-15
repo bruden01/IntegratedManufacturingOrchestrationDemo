@@ -42,7 +42,6 @@ export function subscribeToUIUpdates(onUpdate) {
       if (!authed && msg.status === 200) {
         authed = true;
         retryMs = RECONNECT_MS;
-        console.info('[ui-updates] socket authenticated, subscribing');
         ws.send(JSON.stringify({
           op: 'subscribe',
           resourceName: 'events',
@@ -55,7 +54,6 @@ export function subscribeToUIUpdates(onUpdate) {
       if (msg.status === 100 && msg.body) {
         // Pushed events carry the payload under body.value (types, topics) or, for some event kinds, as the body itself.
         const value = msg.body.value ?? msg.body;
-        console.info('[ui-updates] update', msg.body.path, value.kind);
         onUpdate(value);
       } else if (msg.status === 410) {
         // The subscription was terminated server-side: drop the socket so the reconnect resubscribes.
@@ -63,10 +61,6 @@ export function subscribeToUIUpdates(onUpdate) {
         ws.close();
       } else if (msg.status >= 400) {
         console.warn('[ui-updates] server replied', msg.status, JSON.stringify(msg.body));
-      } else if (msg.status === 200) {
-        console.info('[ui-updates] subscription accepted', msg.headers?.['X-Request-Id']);
-      } else {
-        console.info('[ui-updates] unhandled frame', JSON.stringify(msg));
       }
     };
     ws.onclose = () => {

@@ -1,4 +1,4 @@
-// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence.
+// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence. Rows are in build order, which is line-side need order, so a build-order swap reorders the rows.
 package com.vantiqse.imo
 import source com.vantiqse.imo.PlantMESDB
 import source com.vantiqse.imo.SupplierADB
@@ -6,7 +6,7 @@ import source com.vantiqse.imo.SupplierBDB
 
 STATELESS PROCEDURE Board.getSequenceBoard(): Object
 
-var ordersRes = SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin, vehicle, seat_spec, rev, need_in_sec FROM build_orders ORDER BY seq"
+var ordersRes = SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin, vehicle, seat_spec, rev, need_in_sec FROM build_orders ORDER BY need_in_sec, seq"
 var seatSetsRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, stage, hold, defect FROM seat_sets"
 var inventoryRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin, seat_spec, on_hand, reserved FROM seat_inventory ORDER BY bin"
 var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.seq AS seq, a.tugger_id AS tugger_id FROM assignments a"

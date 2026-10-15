@@ -23,9 +23,12 @@ Do not rewrite the diagram through the API again to fix this. Edit it in the Mod
 Answer each one by filling in the line under it (a one-word answer or "go with your recommendation" is fine). A fresh session should not build until these are answered.
 
 1. **Who fixes it.** Options: (a) you open the design model in the Modeler and save it, then tell the session what you see, (b) the session reads the server state and proposes a fix without changing the diagram through the API. Recommendation: (a) first; do not rewrite the diagram through the API again.
-   Your answer:
+   Your answer: (a). The design model was edited in the Modeler.
 2. **If the Modeler shows the three links but the readback is still empty,** do you want the session to treat the readback as unreliable and rely on the runtime tests, or investigate further? Recommendation: rely on the runtime tests and keep the repo's `Design.json` matched to the Modeler's saved version.
-   Your answer:
+   Your answer: Moot: after the Modeler save the routes read back correctly.
+
+## Status (2026-10-15)
+Resolved. After the Modeler save, `serviceEventRoutes` reads back all six routes (the three damaged-seat and UI routes plus `PlantMES.OutboundBuildOrderChange` -> `BuildOrder`, `Seating.OutboundPickQueueConfirmed` -> `BuildOrder`, `BuildOrder.OutboundUIUpdate` -> `UIUpdates`). The repo's `Design.json` was synced from the server. Runtime routing was confirmed by a build-order run end to end.
 
 ## Done when
 The Modeler shows the three links, the saved routes read back correctly, and the repo's `Design.json` matches.
