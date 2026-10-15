@@ -1,9 +1,10 @@
 // Maps a Supplier B tugger fault-channel message (MQTT) to the normalized event: the fault itself (TuggerFault), or Supplier B's report that it moved the loads off the faulted tugger (TuggerReassigned).
 package com.vantiqse.imo
+import service com.vantiqse.imo.Common
 
-STATELESS PROCEDURE Events.fromFault(event REQUIRED DESCRIPTION "The tugger Fault event"): Object
+STATELESS PROCEDURE Tugger.normalizeFault(event REQUIRED DESCRIPTION "The tugger Fault event"): Object
 
-var e = Events.unwrap(event)
+var e = Common.unwrap(event)
 var t = "TuggerFault"
 if (e.type == "TuggerReassigned") {
     t = "TuggerReassigned"

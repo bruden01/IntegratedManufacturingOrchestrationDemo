@@ -48,25 +48,14 @@
     },
     "Normalize" : {
       "configuration" : {
-        "childStreams" : [ "PublishNormalized" ],
+        "childStreams" : [ ],
         "parentStreams" : [ "EventStream" ],
-        "transformation" : "com.vantiqse.imo.Events.fromTelemetry"
+        "transformation" : "com.vantiqse.imo.Tugger.normalizeTelemetry"
       },
       "description" : "Maps the tugger Telemetry event to the normalized event shape.",
       "name" : "Normalize",
       "pattern" : "Transformation",
       "patternVersion" : 5
-    },
-    "PublishNormalized" : {
-      "configuration" : {
-        "eventTypeName" : "NormalizedEvent",
-        "parentStreams" : [ "Normalize" ],
-        "service" : "com.vantiqse.imo.Events"
-      },
-      "description" : "Publishes the normalized event to the Events service.",
-      "name" : "PublishNormalized",
-      "pattern" : "PublishToService",
-      "patternVersion" : 3
     }
   },
   "contextualizedAssembly" : { },

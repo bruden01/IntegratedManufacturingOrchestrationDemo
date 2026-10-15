@@ -61,33 +61,17 @@
     "Normalize": {
       "configuration": {
         "childStreams": [
-          "PublishNormalized"
+          "FilterRevised"
         ],
         "parentStreams": [
           "Initiate"
         ],
-        "transformation": "com.vantiqse.imo.Events.fromBuildOrder"
+        "transformation": "com.vantiqse.imo.PlantMES.normalize"
       },
       "description": "Maps the plant MES build-order message to the normalized event shape.",
       "name": "Normalize",
       "pattern": "Transformation",
       "patternVersion": 5
-    },
-    "PublishNormalized": {
-      "configuration": {
-        "eventTypeName": "NormalizedEvent",
-        "parentStreams": [
-          "Normalize"
-        ],
-        "service": "com.vantiqse.imo.Events",
-        "childStreams": [
-          "FilterRevised"
-        ]
-      },
-      "description": "Publishes the normalized event to the Events service.",
-      "name": "PublishNormalized",
-      "pattern": "PublishToService",
-      "patternVersion": 3
     },
     "FilterRevised": {
       "configuration": {
@@ -96,7 +80,7 @@
           "OutboundBuildOrderChange"
         ],
         "parentStreams": [
-          "PublishNormalized"
+          "Normalize"
         ]
       },
       "downstreamReferences": {},

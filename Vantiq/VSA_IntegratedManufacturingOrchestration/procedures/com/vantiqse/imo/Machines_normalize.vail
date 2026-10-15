@@ -1,9 +1,10 @@
 // Maps a Supplier B machine data message (OPC UA node change) to the normalized event. Splits the node id Machine.<id>.<field>.
 package com.vantiqse.imo
+import service com.vantiqse.imo.Common
 
-STATELESS PROCEDURE Events.fromMachine(event REQUIRED DESCRIPTION "The OPC UA node change delivered by the OPC UA source"): Object
+STATELESS PROCEDURE Machines.normalize(event REQUIRED DESCRIPTION "The OPC UA node change delivered by the OPC UA source"): Object
 
-var e = Events.unwrap(event)
+var e = Common.unwrap(event)
 var parts = e.nodeIdentifier.split(".")
 var machine = parts[1]
 var field = parts[2]

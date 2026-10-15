@@ -121,12 +121,14 @@
     "NormalizePartStatus": {
       "configuration": {
         "childStreams": [
-          "PublishPartStatus"
+          "FilterPartHeld",
+          "FilterProgress",
+          "FilterPickQueue"
         ],
         "parentStreams": [
           "PartStatusStream"
         ],
-        "transformation": "com.vantiqse.imo.Events.fromPartStatus"
+        "transformation": "com.vantiqse.imo.Seating.normalizePartStatus"
       },
       "description": "Maps the seating PartStatus event to the normalized event shape.",
       "downstreamReferences": {},
@@ -138,12 +140,12 @@
     "NormalizeQuality": {
       "configuration": {
         "childStreams": [
-          "PublishQuality"
+          "FilterQualityFailed"
         ],
         "parentStreams": [
           "QualityStream"
         ],
-        "transformation": "com.vantiqse.imo.Events.fromQuality"
+        "transformation": "com.vantiqse.imo.Seating.normalizeQuality"
       },
       "description": "Maps the seating Quality event to the normalized event shape.",
       "downstreamReferences": {},
@@ -182,44 +184,6 @@
       "patternVersion": 5,
       "uuid": "5a1c9e72-3b04-4f1d-8e26-7d0b2c4a9f11"
     },
-    "PublishPartStatus": {
-      "configuration": {
-        "childStreams": [
-          "FilterPartHeld",
-          "FilterProgress",
-          "FilterPickQueue"
-        ],
-        "eventTypeName": "NormalizedEvent",
-        "parentStreams": [
-          "NormalizePartStatus"
-        ],
-        "service": "com.vantiqse.imo.Events"
-      },
-      "description": "Publishes the normalized event to the Events service.",
-      "downstreamReferences": {},
-      "name": "PublishPartStatus",
-      "pattern": "PublishToService",
-      "patternVersion": 3,
-      "uuid": "2986058e-550c-479e-8816-8896922c050d"
-    },
-    "PublishQuality": {
-      "configuration": {
-        "childStreams": [
-          "FilterQualityFailed"
-        ],
-        "eventTypeName": "NormalizedEvent",
-        "parentStreams": [
-          "NormalizeQuality"
-        ],
-        "service": "com.vantiqse.imo.Events"
-      },
-      "description": "Publishes the normalized event to the Events service.",
-      "downstreamReferences": {},
-      "name": "PublishQuality",
-      "pattern": "PublishToService",
-      "patternVersion": 3,
-      "uuid": "0681e2f6-d105-4e2d-bf34-7c55b01ab537"
-    },
     "QualityStream": {
       "configuration": {
         "childStreams": [
@@ -245,7 +209,7 @@
           "Join"
         ],
         "parentStreams": [
-          "PublishPartStatus"
+          "NormalizePartStatus"
         ]
       },
       "uuid": "3c7e5a91-6d2b-4f08-a1c4-9e0b7d2f5a31",
@@ -262,7 +226,7 @@
           "Join"
         ],
         "parentStreams": [
-          "PublishQuality"
+          "NormalizeQuality"
         ]
       },
       "uuid": "d41f8b62-0e93-4c75-b8a6-2f1c9e4d7b52",
@@ -277,7 +241,7 @@
           "OutboundSeatingProgress"
         ],
         "parentStreams": [
-          "PublishPartStatus"
+          "NormalizePartStatus"
         ]
       },
       "downstreamReferences": {},
@@ -307,7 +271,7 @@
           "OutboundPickQueueConfirmed"
         ],
         "parentStreams": [
-          "PublishPartStatus"
+          "NormalizePartStatus"
         ]
       },
       "downstreamReferences": {},

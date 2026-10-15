@@ -24,7 +24,23 @@
     }
   },
   "globalType" : null,
-  "interface" : [ ],
+  "interface" : [ {
+    "name" : "normalize",
+    "description" : "Maps a Plant MES build-order message (MQTT) to the normalized event. A revision becomes BuildOrderRevised.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The build-order message from the plant MES"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  } ],
   "internalEventHandlers" : [ "/collaborationtypes/com.vantiqse.imo.PlantMES.PlantMESData" ],
   "isAgent" : false,
   "name" : "com.vantiqse.imo.PlantMES",

@@ -1,9 +1,10 @@
 // Maps a Supplier A seating PartStatus event to the normalized event. The stage becomes the event type.
 package com.vantiqse.imo
+import service com.vantiqse.imo.Common
 
-STATELESS PROCEDURE Events.fromPartStatus(event REQUIRED DESCRIPTION "The PartStatus event posted by the seating supplier"): Object
+STATELESS PROCEDURE Seating.normalizePartStatus(event REQUIRED DESCRIPTION "The PartStatus event posted by the seating supplier"): Object
 
-var e = Events.unwrap(event)
+var e = Common.unwrap(event)
 var t = "PartStatusChanged"
 if (e.stage == "QUEUED") {
     t = "PartQueued"

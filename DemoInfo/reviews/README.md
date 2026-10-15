@@ -28,7 +28,7 @@ Suggested order: 7 and 1 first, then 2, then 3, 4 and 5 (any order), with 6 at a
 - `Web/` the Vite and React dashboard. `Web/src/App.jsx` is most of it; `Web/src/services/updates.js` is the live UI-update subscription.
 - `JdbcConnector/`, `OpcUaConnector/` local connectors that let Vantiq read and write the SQLite databases and read OPC UA.
 
-**The Vantiq services.** `Tugger`, `PlantMES`, `Machines`, `Seating` (inbound feeds, normalized into `Events`), `Issue` (the damaged-seat case, a collaboration service), `UIUpdates` (single outbound stream for the UIs), `Board` (builds the sequence board by reading the three databases), `Events` (the normalized event type). The `Demo` service (`com.vantiqse.utils.Demo`, with `reset`) must NOT be in the design model.
+**The Vantiq services.** `Tugger`, `PlantMES`, `Machines`, `Seating` (inbound feeds; each service normalizes its own feed in a `normalize` procedure, using `Common.unwrap`), `Issue` (the damaged-seat case, a collaboration service), `UIUpdates` (single outbound stream for the UIs), `Board` (builds the sequence board by reading the three databases), `BuildOrder` (the build-order change), `Fleet` (the tugger fault), `Common` (helpers shared by every service). The normalized event shape is the `NormalizedEvent` type; there is no `Events` service. The `Demo` service (`com.vantiqse.utils.Demo`, with `reset`) must NOT be in the design model.
 
 **What is built for the damaged seat today.**
 1. Simulator posts a failed quality scan to `Seating`, then 3 s later plays Supplier A placing a hold (`PartStatus HOLD`).

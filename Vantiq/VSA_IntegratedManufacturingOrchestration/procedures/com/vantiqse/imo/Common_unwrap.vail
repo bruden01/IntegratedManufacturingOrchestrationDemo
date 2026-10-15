@@ -1,7 +1,7 @@
 // Returns an inbound feed payload as an Object. Accepts the payload as a JSON string, an Object, or a source message that carries the payload in a value property.
 package com.vantiqse.imo
 
-STATELESS PROCEDURE Events.unwrap(event REQUIRED DESCRIPTION "The inbound event as the handler received it"): Object
+STATELESS PROCEDURE Common.unwrap(event REQUIRED DESCRIPTION "The inbound event as the handler received it"): Object
 
 var result = event
 if (typeOf(event) == "String") {

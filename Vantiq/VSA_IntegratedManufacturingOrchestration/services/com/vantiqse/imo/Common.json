@@ -1,0 +1,43 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : [ ]
+  },
+  "ars_relationships" : [ ],
+  "description" : "Helpers shared by every service. Today: unwrap, which turns an inbound feed message into a payload object for each service's normalizer.",
+  "eventTypes" : { },
+  "globalType" : null,
+  "interface" : [ {
+    "name" : "unwrap",
+    "description" : "Returns an inbound feed message as a payload Object.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The inbound event as the handler received it"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  } ],
+  "internalEventHandlers" : [ ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.Common",
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : { }
+}

@@ -47,24 +47,105 @@
     },
     "Normalize" : {
       "configuration" : {
-        "childStreams" : [ "PublishNormalized" ],
+        "childStreams" : [ "FilterChargerFault", "FilterConveyorJam", "FilterMachineStateChanged", "FilterMachineReading" ],
         "parentStreams" : [ "Initiate" ],
-        "transformation" : "com.vantiqse.imo.Events.fromMachine"
+        "transformation" : "com.vantiqse.imo.Machines.normalize"
       },
       "description" : "Maps the OPC UA node change to the normalized event shape.",
       "name" : "Normalize",
       "pattern" : "Transformation",
       "patternVersion" : 5
     },
-    "PublishNormalized" : {
+    "FilterChargerFault" : {
       "configuration" : {
-        "eventTypeName" : "NormalizedEvent",
-        "parentStreams" : [ "Normalize" ],
-        "service" : "com.vantiqse.imo.Events"
+        "condition" : "event.type == \"ChargerFault\"",
+        "childStreams" : [ "OutboundChargerFault" ],
+        "parentStreams" : [ "Normalize" ]
       },
-      "description" : "Publishes the normalized event to the Events service.",
-      "name" : "PublishNormalized",
-      "pattern" : "PublishToService",
+      "description" : "A charger reported a fault code (CHG-1..3).",
+      "downstreamReferences" : { },
+      "name" : "FilterChargerFault",
+      "pattern" : "Filter",
+      "patternVersion" : 5
+    },
+    "OutboundChargerFault" : {
+      "configuration" : {
+        "eventTypeName" : "OutboundChargerFault",
+        "parentStreams" : [ "FilterChargerFault" ],
+        "service" : "com.vantiqse.imo.Machines"
+      },
+      "downstreamReferences" : { },
+      "name" : "OutboundChargerFault",
+      "pattern" : "PublishToEventType",
+      "patternVersion" : 3
+    },
+    "FilterConveyorJam" : {
+      "configuration" : {
+        "condition" : "event.type == \"ConveyorJam\"",
+        "childStreams" : [ "OutboundConveyorJam" ],
+        "parentStreams" : [ "Normalize" ]
+      },
+      "description" : "The dock conveyor reported a fault code (CONV-1).",
+      "downstreamReferences" : { },
+      "name" : "FilterConveyorJam",
+      "pattern" : "Filter",
+      "patternVersion" : 5
+    },
+    "OutboundConveyorJam" : {
+      "configuration" : {
+        "eventTypeName" : "OutboundConveyorJam",
+        "parentStreams" : [ "FilterConveyorJam" ],
+        "service" : "com.vantiqse.imo.Machines"
+      },
+      "downstreamReferences" : { },
+      "name" : "OutboundConveyorJam",
+      "pattern" : "PublishToEventType",
+      "patternVersion" : 3
+    },
+    "FilterMachineStateChanged" : {
+      "configuration" : {
+        "condition" : "event.type == \"MachineStateChanged\"",
+        "childStreams" : [ "OutboundMachineStateChanged" ],
+        "parentStreams" : [ "Normalize" ]
+      },
+      "description" : "A charger or the conveyor changed state.",
+      "downstreamReferences" : { },
+      "name" : "FilterMachineStateChanged",
+      "pattern" : "Filter",
+      "patternVersion" : 5
+    },
+    "OutboundMachineStateChanged" : {
+      "configuration" : {
+        "eventTypeName" : "OutboundMachineStateChanged",
+        "parentStreams" : [ "FilterMachineStateChanged" ],
+        "service" : "com.vantiqse.imo.Machines"
+      },
+      "downstreamReferences" : { },
+      "name" : "OutboundMachineStateChanged",
+      "pattern" : "PublishToEventType",
+      "patternVersion" : 3
+    },
+    "FilterMachineReading" : {
+      "configuration" : {
+        "condition" : "event.type == \"MachineReading\"",
+        "childStreams" : [ "OutboundMachineReading" ],
+        "parentStreams" : [ "Normalize" ]
+      },
+      "description" : "Any other machine reading: charge level, cart count, or a fault code clearing.",
+      "downstreamReferences" : { },
+      "name" : "FilterMachineReading",
+      "pattern" : "Filter",
+      "patternVersion" : 5
+    },
+    "OutboundMachineReading" : {
+      "configuration" : {
+        "eventTypeName" : "OutboundMachineReading",
+        "parentStreams" : [ "FilterMachineReading" ],
+        "service" : "com.vantiqse.imo.Machines"
+      },
+      "downstreamReferences" : { },
+      "name" : "OutboundMachineReading",
+      "pattern" : "PublishToEventType",
       "patternVersion" : 3
     }
   },

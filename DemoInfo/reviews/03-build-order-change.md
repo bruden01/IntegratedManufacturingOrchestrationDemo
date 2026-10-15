@@ -5,7 +5,7 @@ The script's step 4 says Vantiq detects a last-minute build-order change, re-seq
 
 ## What exists now
 - Simulator `POST /scenario/reorder` (`_scenario_reorder` in `Simulation/simulator.py`): swaps the vehicles at positions 6 and 8 of the window, bumps the revision (117 to 118), updates the Supplier A seat sets, rewrites the plant MES `build_orders`, and publishes the build order on MQTT `/vantiqse/imo/plantmes/buildorder` with a `changes` list (`pushed back`, `pulled forward`).
-- Vantiq `PlantMES` service handler `PlantMES.PlantMESData` normalizes it through `Events.fromBuildOrder` and publishes to `Events`. Nothing acts on it.
+- Vantiq `PlantMES` service handler `PlantMES.PlantMESData` normalizes it through `PlantMES.normalize`. Nothing acts on it.
 - `Board.getSequenceBoard` already reads the new order from the plant MES database, so the rows swap on the board. The dashboard row note for the change is mock text.
 - Supplier A's database has `seat_sets` and `seat_inventory`; there is no pick-queue table.
 

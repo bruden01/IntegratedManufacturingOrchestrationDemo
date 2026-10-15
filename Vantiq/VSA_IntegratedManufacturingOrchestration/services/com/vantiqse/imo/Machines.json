@@ -15,9 +15,50 @@
   },
   "ars_relationships" : [ ],
   "description" : null,
-  "eventTypes" : { },
+  "eventTypes" : {
+    "OutboundChargerFault" : {
+      "description" : "A charger reported a fault code (CHG-1..3).",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    },
+    "OutboundConveyorJam" : {
+      "description" : "The dock conveyor reported a fault code (CONV-1).",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    },
+    "OutboundMachineStateChanged" : {
+      "description" : "A charger or the conveyor changed state.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    },
+    "OutboundMachineReading" : {
+      "description" : "Any other machine reading: charge level, cart count, or a fault code clearing.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    }
+  },
   "globalType" : null,
-  "interface" : [ ],
+  "interface" : [ {
+    "name" : "normalize",
+    "description" : "Maps a Supplier B machine data message (OPC UA node change) to the normalized event. Splits the node id Machine.<id>.<field>.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The OPC UA node change delivered by the OPC UA source"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  } ],
   "internalEventHandlers" : [ "/collaborationtypes/com.vantiqse.imo.Machines.MachineData" ],
   "isAgent" : false,
   "name" : "com.vantiqse.imo.Machines",

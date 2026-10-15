@@ -48,7 +48,39 @@
     }
   },
   "globalType" : null,
-  "interface" : [ ],
+  "interface" : [ {
+    "name" : "normalizePartStatus",
+    "description" : "Maps a Supplier A seating PartStatus event to the normalized event. The stage becomes the event type.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The PartStatus event posted by the seating supplier"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  }, {
+    "name" : "normalizeQuality",
+    "description" : "Maps a Supplier A seating Quality event (vision check) to the normalized event.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The Quality event posted by the seating supplier"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  } ],
   "internalEventHandlers" : [ ],
   "isAgent" : false,
   "name" : "com.vantiqse.imo.Seating",

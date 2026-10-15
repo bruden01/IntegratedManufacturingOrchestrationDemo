@@ -36,7 +36,39 @@
     }
   },
   "globalType" : null,
-  "interface" : [ ],
+  "interface" : [ {
+    "name" : "normalizeFault",
+    "description" : "Maps a Supplier B tugger fault-channel message (MQTT) to the normalized event: the fault itself (TuggerFault), or Supplier B's report that it moved the loads off the faulted tugger (TuggerReassigned).",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The tugger Fault event"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  }, {
+    "name" : "normalizeTelemetry",
+    "description" : "Maps a Supplier B tugger Telemetry event (MQTT) to the normalized event. The station is the tugger's zone.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "The tugger Telemetry event"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  } ],
   "internalEventHandlers" : [ "/rules/com.vantiqse.imo.Tugger.OnTuggerMsg" ],
   "isAgent" : false,
   "name" : "com.vantiqse.imo.Tugger",

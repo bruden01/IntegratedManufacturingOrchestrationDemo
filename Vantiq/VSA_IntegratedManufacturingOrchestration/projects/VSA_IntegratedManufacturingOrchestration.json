@@ -1,9 +1,6 @@
 {
   "ars_relationships" : [ ],
   "links" : [ {
-    "source" : "app/com.vantiqse.imo.Events.NormalizedEvent",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
     "source" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating",
     "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId"
   }, {
@@ -17,49 +14,16 @@
     "target" : "services/com.vantiqse.imo.Issue"
   }, {
     "source" : "app/com.vantiqse.imo.Machines.MachineData",
-    "target" : "procedure/com.vantiqse.imo.Events.fromMachine"
-  }, {
-    "source" : "app/com.vantiqse.imo.Machines.MachineData",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "app/com.vantiqse.imo.Machines.MachineData",
     "target" : "services/com.vantiqse.imo.Machines"
-  }, {
-    "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
-    "target" : "procedure/com.vantiqse.imo.Events.fromBuildOrder"
-  }, {
-    "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
-    "target" : "services/com.vantiqse.imo.Events"
   }, {
     "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
     "target" : "services/com.vantiqse.imo.PlantMES"
   }, {
     "source" : "app/com.vantiqse.imo.Seating.SeatingData",
-    "target" : "procedure/com.vantiqse.imo.Events.fromPartStatus"
-  }, {
-    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
-    "target" : "procedure/com.vantiqse.imo.Events.fromQuality"
-  }, {
-    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
     "target" : "services/com.vantiqse.imo.Seating"
   }, {
     "source" : "app/com.vantiqse.imo.Tugger.Fault",
-    "target" : "procedure/com.vantiqse.imo.Events.fromFault"
-  }, {
-    "source" : "app/com.vantiqse.imo.Tugger.Fault",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "app/com.vantiqse.imo.Tugger.Fault",
     "target" : "services/com.vantiqse.imo.Tugger"
-  }, {
-    "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
-    "target" : "procedure/com.vantiqse.imo.Events.fromTelemetry"
-  }, {
-    "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
-    "target" : "services/com.vantiqse.imo.Events"
   }, {
     "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
     "target" : "services/com.vantiqse.imo.Tugger"
@@ -96,45 +60,6 @@
   }, {
     "source" : "procedure/com.vantiqse.imo.Board.rowsOf",
     "target" : "services/com.vantiqse.imo.Board"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromBuildOrder",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromBuildOrder",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromFault",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromFault",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromMachine",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromMachine",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromPartStatus",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromPartStatus",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromQuality",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromQuality",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromTelemetry",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.fromTelemetry",
-    "target" : "services/com.vantiqse.imo.Events"
-  }, {
-    "source" : "procedure/com.vantiqse.imo.Events.unwrap",
-    "target" : "services/com.vantiqse.imo.Events"
   }, {
     "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
     "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsMarkAsClosing"
@@ -273,33 +198,6 @@
   }, {
     "source" : "services/com.vantiqse.imo.Board",
     "target" : "procedure/com.vantiqse.imo.Board.rowsOf"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "app/com.vantiqse.imo.Events.NormalizedEvent"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.fromBuildOrder"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.fromFault"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.fromMachine"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.fromPartStatus"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.fromQuality"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.fromTelemetry"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
-  }, {
-    "source" : "services/com.vantiqse.imo.Events",
-    "target" : "type/com.vantiqse.imo.NormalizedEvent"
   }, {
     "source" : "services/com.vantiqse.imo.Issue",
     "target" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating"
@@ -500,72 +398,6 @@
     "name" : "com.vantiqse.imo.Design",
     "resourceReference" : "/system.designmodels/com.vantiqse.imo.Design",
     "type" : 75
-  }, {
-    "label" : "com.vantiqse.imo.Events",
-    "name" : "com.vantiqse.imo.Events",
-    "resourceReference" : "/services/com.vantiqse.imo.Events",
-    "type" : 63
-  }, {
-    "label" : "com.vantiqse.imo.Events.NormalizedEvent",
-    "name" : "com.vantiqse.imo.Events.NormalizedEvent",
-    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Events.NormalizedEvent",
-    "type" : 12
-  }, {
-    "label" : "com.vantiqse.imo.Events.fromBuildOrder",
-    "name" : "com.vantiqse.imo.Events.fromBuildOrder",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "fromBuildOrder",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromBuildOrder",
-    "serviceName" : "Events",
-    "type" : 3
-  }, {
-    "label" : "com.vantiqse.imo.Events.fromFault",
-    "name" : "com.vantiqse.imo.Events.fromFault",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "fromFault",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromFault",
-    "serviceName" : "Events",
-    "type" : 3
-  }, {
-    "label" : "com.vantiqse.imo.Events.fromMachine",
-    "name" : "com.vantiqse.imo.Events.fromMachine",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "fromMachine",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromMachine",
-    "serviceName" : "Events",
-    "type" : 3
-  }, {
-    "label" : "com.vantiqse.imo.Events.fromPartStatus",
-    "name" : "com.vantiqse.imo.Events.fromPartStatus",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "fromPartStatus",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromPartStatus",
-    "serviceName" : "Events",
-    "type" : 3
-  }, {
-    "label" : "com.vantiqse.imo.Events.fromQuality",
-    "name" : "com.vantiqse.imo.Events.fromQuality",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "fromQuality",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromQuality",
-    "serviceName" : "Events",
-    "type" : 3
-  }, {
-    "label" : "com.vantiqse.imo.Events.fromTelemetry",
-    "name" : "com.vantiqse.imo.Events.fromTelemetry",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "fromTelemetry",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromTelemetry",
-    "serviceName" : "Events",
-    "type" : 3
-  }, {
-    "label" : "com.vantiqse.imo.Events.unwrap",
-    "name" : "com.vantiqse.imo.Events.unwrap",
-    "packageName" : "com.vantiqse.imo",
-    "procedureName" : "unwrap",
-    "resourceReference" : "/procedures/com.vantiqse.imo.Events.unwrap",
-    "serviceName" : "Events",
-    "type" : 3
   }, {
     "name" : "com.vantiqse.imo.Issue",
     "resourceReference" : "/services/com.vantiqse.imo.Issue",
@@ -947,6 +779,17 @@
     "name" : "com.vantiqse.imo.Fleet.InboundTuggerEvent",
     "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Fleet.InboundTuggerEvent",
     "type" : 12
+  }, {
+    "name" : "com.vantiqse.imo.Common",
+    "resourceReference" : "/services/com.vantiqse.imo.Common",
+    "type" : 63
+  }, {
+    "name" : "com.vantiqse.imo.Common.unwrap",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "unwrap",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Common.unwrap",
+    "serviceName" : "Common",
+    "type" : 3
   } ],
   "tools" : [ {
     "isPinned" : false,

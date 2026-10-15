@@ -48,25 +48,14 @@
     },
     "Normalize" : {
       "configuration" : {
-        "childStreams" : [ "PublishNormalized", "PublishOutbound" ],
+        "childStreams" : [ "PublishOutbound" ],
         "parentStreams" : [ "EventStream" ],
-        "transformation" : "com.vantiqse.imo.Events.fromFault"
+        "transformation" : "com.vantiqse.imo.Tugger.normalizeFault"
       },
       "description" : "Maps the tugger Fault event to the normalized event shape.",
       "name" : "Normalize",
       "pattern" : "Transformation",
       "patternVersion" : 5
-    },
-    "PublishNormalized" : {
-      "configuration" : {
-        "eventTypeName" : "NormalizedEvent",
-        "parentStreams" : [ "Normalize" ],
-        "service" : "com.vantiqse.imo.Events"
-      },
-      "description" : "Publishes the normalized event to the Events service.",
-      "name" : "PublishNormalized",
-      "pattern" : "PublishToService",
-      "patternVersion" : 3
     },
     "PublishOutbound" : {
       "configuration" : {
