@@ -1,12 +1,12 @@
-// Returns the rows of a JDBC source query result as a flat array, whether the source delivered them as an array of rows or wrapped in an outer array.
+// Returns the rows of a JDBC source query result as a flat list. SELECT ONE already delivers the rows directly; a plain SELECT wraps them in an outer list. VAIL reports lists as "List".
 package com.vantiqse.imo
 
-STATELESS PROCEDURE Board.rowsOf(res DESCRIPTION "Result of SELECT FROM SOURCE against a JDBC source"): Object Array
+STATELESS PROCEDURE Board.rowsOf(res DESCRIPTION "Result of SELECT ONE FROM SOURCE against a JDBC source"): Object Array
 
 var rows = []
-if (res != null && typeOf(res) == "Array") {
+if (res != null && typeOf(res) == "List") {
     rows = res
-    if (res.size() > 0 && typeOf(res[0]) == "Array") {
+    if (res.size() > 0 && typeOf(res[0]) == "List") {
         rows = res[0]
     }
 }
