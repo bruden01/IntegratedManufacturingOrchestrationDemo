@@ -46,6 +46,13 @@ class Erp:
             with open(os.path.join(SCHEMA_DIR, f'{name}.sql')) as f:
                 conn.executescript(f.read())
             self.conns[name] = conn
+        # tugger_requests gained columns after it first shipped; add them to a database created before.
+        for column, ddl in (('reason', "TEXT NOT NULL DEFAULT 'REPLACEMENT'"), ('from_tugger', 'TEXT')):
+            try:
+                self.conns['supplier_b'].execute(f'ALTER TABLE tugger_requests ADD COLUMN {column} {ddl}')
+                self.conns['supplier_b'].commit()
+            except sqlite3.OperationalError:
+                pass   # already there
 
     def path(self, name):
         return os.path.join(self.data_dir, DATABASES[name])
@@ -175,10 +182,20 @@ class Erp:
         with self.lock:
             try:
                 row = self.conns['supplier_b'].execute(
-                    "SELECT tugger_id FROM tugger_requests WHERE vin = ? AND state = 'REQUESTED'", (vin,)).fetchone()
+                    "SELECT tugger_id FROM tugger_requests WHERE vin = ? AND state = 'REQUESTED' AND reason = 'REPLACEMENT'", (vin,)).fetchone()
                 return row[0] if row else None
             except sqlite3.Error:
                 return None
+
+    def requested_moves(self):
+        """Seat sets Vantiq has asked Supplier B to move off a faulted tugger and Supplier B has not yet confirmed."""
+        with self.lock:
+            try:
+                return self.conns['supplier_b'].execute(
+                    "SELECT vin, seq, tugger_id, from_tugger FROM tugger_requests "
+                    "WHERE state = 'REQUESTED' AND reason = 'TUGGER_FAULT' ORDER BY seq").fetchall()
+            except sqlite3.Error:
+                return []
 
     def confirm_tugger(self, vin, seq, tugger_id):
         """Supplier B assigns the seat set to the requested tugger and confirms."""

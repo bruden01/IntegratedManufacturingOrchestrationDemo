@@ -4,7 +4,7 @@
     "rpPct": 30
   },
   "ars_relationships": [],
-  "ars_version": 21,
+  "ars_version": 22,
   "contents": {
     "connectors": [
       {
@@ -360,6 +360,72 @@
         "name": "confirmed",
         "parent": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40",
         "type": 5
+      },
+      {
+        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&EXTERNALIN1",
+        "name": "NEW-EXT-IN",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 13
+      },
+      {
+        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&EXTERNALOUT1",
+        "name": "NEW-EXT-OUT",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 8
+      },
+      {
+        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&INPUT1",
+        "name": "NEW-IN",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 3
+      },
+      {
+        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&OUTPUT1",
+        "name": "NEW-OUT",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 4
+      },
+      {
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&CALLIN10",
+        "name": "assignTugger",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 5
+      },
+      {
+        "key": "51&8b339503-a63f-43d9-8fcb-adb91099f133&OUTPUT1",
+        "name": "OutboundTuggerEvent",
+        "parent": "8b339503-a63f-43d9-8fcb-adb91099f133",
+        "type": 2
+      },
+      {
+        "key": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&INPUT1",
+        "name": "InboundTuggerEvent",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 1
+      },
+      {
+        "key": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&OUTPUT1",
+        "name": "OutboundUIUpdate",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 2
+      },
+      {
+        "key": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&CALLIN1",
+        "name": "handle",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 5
+      },
+      {
+        "key": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&CALLIN2",
+        "name": "reassign",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 5
+      },
+      {
+        "key": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&CALLIN3",
+        "name": "moved",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 5
       }
     ],
     "links": [
@@ -407,6 +473,16 @@
         "isBidirectional": false,
         "source": "51&1aa2e618-5c78-4c53-8fd9-d79ce37a4c40&OUTPUT1",
         "target": "51&e468daf3-3d09-4393-8a6a-9f85c534c772&INPUT1"
+      },
+      {
+        "isBidirectional": false,
+        "source": "51&8b339503-a63f-43d9-8fcb-adb91099f133&OUTPUT1",
+        "target": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&INPUT1"
+      },
+      {
+        "isBidirectional": false,
+        "source": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&OUTPUT1",
+        "target": "51&e468daf3-3d09-4393-8a6a-9f85c534c772&INPUT1"
       }
     ],
     "objects": [
@@ -417,8 +493,8 @@
         "type": 56,
         "uuid": "e61e37c9-dab9-4eb3-bdaf-c0c408309400",
         "w": 144.8046875,
-        "x": 288.2733310954873,
-        "y": -117.85029581479662
+        "x": 275.85210168713627,
+        "y": -175.29848182842036
       },
       {
         "h": 50,
@@ -427,8 +503,8 @@
         "type": 56,
         "uuid": "d32aae9e-f559-4ad9-91d2-b91806dc9e79",
         "w": 110.21875,
-        "x": 83.2420141231323,
-        "y": 323.3453635321407
+        "x": 73.92609206686897,
+        "y": 320.24005618005293
       },
       {
         "h": 59,
@@ -449,8 +525,8 @@
         "type": 51,
         "uuid": "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
         "w": 200,
-        "x": -209.91285041656272,
-        "y": 95.27372549506269
+        "x": -318.59860773963464,
+        "y": 71.98392035440442
       },
       {
         "h": 59,
@@ -470,8 +546,8 @@
         "type": 56,
         "uuid": "03efed68-0355-4895-830b-642ad36fedd8",
         "w": 124.21875,
-        "x": -203.66148379948854,
-        "y": -13.046445467058803
+        "x": -310.79458744651663,
+        "y": -68.94197780463867
       },
       {
         "h": 59,
@@ -493,8 +569,8 @@
         "type": 51,
         "uuid": "e468daf3-3d09-4393-8a6a-9f85c534c772",
         "w": 127.60252857208252,
-        "x": 803.1785408373668,
-        "y": 127.64914073150649
+        "x": 942.9173716813165,
+        "y": 74.85891574601439
       },
       {
         "h": 59,
@@ -515,8 +591,19 @@
         "type": 51,
         "uuid": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40",
         "w": 200,
-        "x": 130.39097128160836,
-        "y": 140.69715377738441
+        "x": 173.86527421083713,
+        "y": 114.30204128463836
+      },
+      {
+        "h": 59,
+        "label": "Fleet",
+        "resourceName": "com.vantiqse.imo.Fleet",
+        "resourceType": "services",
+        "type": 51,
+        "uuid": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "w": 200,
+        "x": 617.975502202453,
+        "y": -143.70606858548763
       }
     ],
     "prefs": {
@@ -588,6 +675,26 @@
       "eventSource": {
         "eventTypeName": "OutboundUIUpdate",
         "serviceName": "com.vantiqse.imo.BuildOrder"
+      },
+      "eventTarget": {
+        "eventTypeName": "InboundUIUpdate",
+        "serviceName": "com.vantiqse.imo.UIUpdates"
+      }
+    },
+    {
+      "eventSource": {
+        "eventTypeName": "OutboundTuggerEvent",
+        "serviceName": "com.vantiqse.imo.Tugger"
+      },
+      "eventTarget": {
+        "eventTypeName": "InboundTuggerEvent",
+        "serviceName": "com.vantiqse.imo.Fleet"
+      }
+    },
+    {
+      "eventSource": {
+        "eventTypeName": "OutboundUIUpdate",
+        "serviceName": "com.vantiqse.imo.Fleet"
       },
       "eventTarget": {
         "eventTypeName": "InboundUIUpdate",

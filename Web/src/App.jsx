@@ -81,6 +81,17 @@ const incidentSteps = (inc) => [
   { actor: 'Supplier A', text: 'Hold released, the replacement continues as the seat set. Vantiq closes the case', at: inc.released },
 ];
 
+// The tugger fault's path, step by step, with who does each step.
+const tuggerFaultSteps = (f) => [
+  { actor: 'Supplier B', text: `Tugger ${f.tugger} reports fault ${f.code || ''}${f.description ? ` (${f.description})` : ''}${f.carrying?.length ? `, carrying seq ${f.carrying.join(', ')}` : ''}`, at: f.faultTs },
+  { actor: 'Vantiq', text: f.checkSummary || 'Vantiq finds the seat sets on the tugger and checks the other tuggers and chargers', at: f.checkedTs },
+  f.unplaced > 0 && !f.moves?.length
+    ? { actor: 'Vantiq', text: 'No healthy tugger available. Needs a person to decide', at: f.assignedTs, warn: true }
+    : { actor: 'Vantiq', text: f.assignSummary || 'Vantiq asks Supplier B to move the seat sets', at: f.assignedTs },
+  { actor: 'Supplier B', text: `Supplier B moves ${f.moves?.length ?? ''} seat sets off ${f.tugger}`, at: f.movedTs },
+  { actor: 'Vantiq', text: f.tightestBufferSec != null ? `Vantiq recomputes the buffer: tightest ${mmss(f.tightestBufferSec)}, line-stop risk ${f.risk}` : 'Vantiq recomputes the buffer and the line-stop risk', at: f.recomputedTs },
+];
+
 export default function App() {
   const [flags, setFlags] = useState({ reorder: false, damage: false, tugger: false });
   const [log, setLog] = useState([]);
@@ -96,6 +107,8 @@ export default function App() {
   const [resetError, setResetError] = useState('');
   // Back-end activity for the damaged seat, built from the UI updates Vantiq pushes (keyed by VIN).
   const [incidents, setIncidents] = useState({});
+  // The tugger fault handled by Vantiq, built from its UI updates ({tugger, code, moves, ...}), or null.
+  const [tuggerFault, setTuggerFault] = useState(null);
   // Pick-queue changes after a build-order revision, keyed by VIN: {note, confirmed}.
   const [moves, setMoves] = useState({});
   // Seconds from the triggering event to Vantiq's action, measured from the timestamps on the last UI update.
@@ -227,7 +240,7 @@ export default function App() {
     () =>
       subscribeToUIUpdates((u) => {
         // The plant message (or the later of the failed scan and the hold) to the moment Vantiq acted.
-        const from = u.kind === 'BuildOrderChanged' ? u.eventTs : u.kind === 'ReplacementReserved' || u.kind === 'NoReplacementAvailable' ? [u.failedTs, u.heldTs].sort().pop() : null;
+        const from = u.kind === 'BuildOrderChanged' ? u.eventTs : u.kind === 'TuggerFault' ? u.faultTs : u.kind === 'ReplacementReserved' || u.kind === 'NoReplacementAvailable' ? [u.failedTs, u.heldTs].sort().pop() : null;
         if (from && u.ts) {
           const sec = (Date.parse(u.ts) - Date.parse(from)) / 1000;
           if (sec >= 0 && sec < 600) setEventToAction(sec);
@@ -244,6 +257,16 @@ export default function App() {
         if (u.kind === 'PickQueueConfirmed') {
           setMoves((prev) => (prev[u.vin] ? { ...prev, [u.vin]: { ...prev[u.vin], confirmed: true } } : prev));
           setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: `Seq ${u.seq} (${u.vin}): new pick order`, action: u.summary }, ...prev]);
+          return;
+        }
+        if (u.kind === 'TuggerFault') {
+          setTuggerFault({ ...u, assignSummary: u.summary });
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'EQUIPMENT', event: `Tugger ${u.tugger} reported fault ${u.code}${u.description ? ` (${u.description})` : ''}`, action: u.unplaced > 0 && !u.moves?.length ? 'No healthy tugger available, needs a person to decide' : u.summary }, ...prev]);
+          return;
+        }
+        if (u.kind === 'TuggerReassigned') {
+          setTuggerFault((prev) => ({ ...(prev || { tugger: u.tugger }), movedTs: u.ts, recomputedTs: u.recomputedTs, tightestBufferSec: u.tightestBufferSec, risk: u.risk }));
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: u.summary, action: u.tightestBufferSec != null ? `Vantiq recomputed the buffer: tightest ${mmss(u.tightestBufferSec)}, line-stop risk ${u.risk}` : 'Vantiq recomputed the buffer' }, ...prev]);
           return;
         }
         setIncidents((prev) => {
@@ -282,8 +305,8 @@ export default function App() {
     if (flags[key]) return;
     callSim(`/scenario/${key}`);
     setFlags({ ...flags, [key]: true });
-    // The build-order change is logged from Vantiq's own updates, so it gets no mock line here.
-    if (key !== 'reorder') {
+    // The build-order change and the tugger fault are logged from Vantiq's own updates, so they get no mock line here.
+    if (key !== 'reorder' && key !== 'tugger') {
       setLog([{ t: clock(n + 1), tag, event, action }, ...log]);
       setN(n + 1);
     }
@@ -298,6 +321,7 @@ export default function App() {
     setFlags({ reorder: false, damage: false, tugger: false });
     setLog([]);
     setIncidents({});
+    setTuggerFault(null);
     setMoves({});
     setEventToAction(null);
     setN(0);
@@ -314,7 +338,7 @@ export default function App() {
   const handled = Object.values(flags).filter(Boolean).length;
 
   const rows = (board?.rows || []).map((r) => {
-    const faulted = r.tuggerFault ? `Tugger ${r.tugger} fault ${r.tuggerFault}` : '';
+    const faulted = r.tuggerFault ? `Tugger ${r.tugger} fault ${r.tuggerFault}` : r.movedFrom ? `Moved from ${r.movedFrom} to ${r.tugger}` : '';
     const held = r.hold ? `Hold: ${r.defect || 'quality'}` : '';
     const inc = incidents[r.vin];
     const backend = inc ? incidentNote(inc) : '';
@@ -460,7 +484,7 @@ export default function App() {
         </section>
 
         <div className="side">
-          {Object.values(incidents).length > 0 && (
+          {(Object.values(incidents).length > 0 || tuggerFault) && (
             <section className="panel pad">
               <div className="panel-head flush">
                 <h2>Behind the scenes</h2>
@@ -478,6 +502,18 @@ export default function App() {
                   ))}
                 </div>
               ))}
+              {tuggerFault && (
+                <div className="incident">
+                  <div className="mono muted">Tugger {tuggerFault.tugger}</div>
+                  {tuggerFaultSteps(tuggerFault).map((st, i) => (
+                    <div key={i} className={`step${st.at ? ' done' : ''}${st.warn ? ' warn' : ''}`}>
+                      <span className={`chip ${st.actor === 'Vantiq' ? 'chip-ok' : 'chip-info'}`}>{st.actor}</span>
+                      <span className="step-text">{st.text}</span>
+                      <span className="mono muted step-time">{st.at ? fmtTime(st.at) : 'waiting'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
 

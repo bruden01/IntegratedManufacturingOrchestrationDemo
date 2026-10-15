@@ -1,0 +1,144 @@
+// Handles a tugger fault. Finds the seat sets assigned to the faulted tugger (the ones already on it first), checks the other tuggers in Supplier B's database and their chargers over OPC UA, and writes a move for each set into Supplier B's tugger_requests table. Supplier B's fleet system then moves the loads. A set on a tugger needs room on the new tugger (capacity); a set not yet loaded does not. Returns the UI update payload (kind TuggerFault).
+package com.vantiqse.imo
+import source com.vantiqse.imo.PlantMESDB
+import source com.vantiqse.imo.SupplierADB
+import source com.vantiqse.imo.SupplierBDB
+import source com.vantiqse.imo.SupplierBMachines
+import service com.vantiqse.imo.Board
+
+STATELESS PROCEDURE Fleet.reassign(event REQUIRED DESCRIPTION "Normalized TuggerFault event"): Object
+
+var faulted = event.detail.tugger
+var checkedTs = now()
+var tuggers = Board.rowsOf(SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, capacity FROM tuggers ORDER BY id")
+var assignments = Board.rowsOf(SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT seq, tugger_id FROM assignments ORDER BY seq")
+var orders = Board.rowsOf(SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin FROM build_orders")
+var seatSets = Board.rowsOf(SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, stage FROM seat_sets")
+
+var vinBySeq = {}
+for (o in orders) {
+    vinBySeq[format("{0}", o.seq)] = o.vin
+}
+var stageByVin = {}
+for (s in seatSets) {
+    stageByVin[s.vin] = s.stage
+}
+
+// The faulted tugger's sets, the ones already on it first. Count what every other tugger holds.
+var carried = []
+var planned = []
+var loadBy = {}
+var carriedBy = {}
+var key = null
+var vin = null
+var isOn = false
+for (a in assignments) {
+    key = format("{0}", a.seq)
+    vin = vinBySeq[key]
+    isOn = vin != null && stageByVin[vin] == "ON_TUGGER"
+    if (a.tugger_id == faulted) {
+        if (isOn) {
+            carried.push(a.seq)
+        } else {
+            planned.push(a.seq)
+        }
+    } else {
+        if (loadBy[a.tugger_id] == null) {
+            loadBy[a.tugger_id] = 0
+            carriedBy[a.tugger_id] = 0
+        }
+        loadBy[a.tugger_id] = loadBy[a.tugger_id] + 1
+        if (isOn) {
+            carriedBy[a.tugger_id] = carriedBy[a.tugger_id] + 1
+        }
+    }
+}
+var ordered = []
+for (c in carried) {
+    ordered.push(c)
+}
+for (p in planned) {
+    ordered.push(p)
+}
+
+// Check every other tugger and its charger.
+var candidates = []
+var seen = []
+var charger = null
+var chargerState = null
+var chargePct = null
+var chargerFault = null
+var stateRes = null
+var pctRes = null
+var faultRes = null
+var healthy = false
+for (t in tuggers) {
+    if (t.id != faulted) {
+        charger = "CHG-" + t.id.substring(1)
+        chargerState = null
+        chargePct = null
+        chargerFault = null
+        stateRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".State", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+        pctRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".ChargePct", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+        faultRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".FaultCode", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+        if (stateRes != null) {
+            chargerState = stateRes.dataValue
+        }
+        if (pctRes != null) {
+            chargePct = pctRes.dataValue
+        }
+        if (faultRes != null) {
+            chargerFault = faultRes.dataValue
+        }
+        healthy = (t.state != "FAULT") && (chargerState != "FAULT") && (chargerFault == null || chargerFault == "") && chargePct != null
+        if (loadBy[t.id] == null) {
+            loadBy[t.id] = 0
+            carriedBy[t.id] = 0
+        }
+        candidates.push({id: t.id, charger: charger, chargePct: chargePct, capacity: t.capacity, healthy: healthy})
+        if (healthy) {
+            seen.push(t.id + " is healthy and " + charger + " is at " + chargePct + "%")
+        } else {
+            seen.push(t.id + " is not usable")
+        }
+    }
+}
+
+// Move each set to the healthiest tugger: highest charge, then fewest sets.
+var moves = []
+var parts = []
+var pick = null
+var safeVin = null
+for (n in ordered) {
+    key = format("{0}", n)
+    vin = vinBySeq[key]
+    isOn = vin != null && stageByVin[vin] == "ON_TUGGER"
+    pick = null
+    for (c in candidates) {
+        if (c.healthy && (isOn == false || carriedBy[c.id] < c.capacity)) {
+            if (pick == null || c.chargePct > pick.chargePct || (c.chargePct == pick.chargePct && loadBy[c.id] < loadBy[pick.id])) {
+                pick = c
+            }
+        }
+    }
+    if (pick != null && vin != null) {
+        loadBy[pick.id] = loadBy[pick.id] + 1
+        if (isOn) {
+            carriedBy[pick.id] = carriedBy[pick.id] + 1
+        }
+        safeVin = vin.replace("'", "''")
+        PUBLISH {query: "INSERT INTO tugger_requests (vin, seq, tugger_id, state, updated_at, reason, from_tugger) VALUES ('" + safeVin + "', " + n + ", '" + pick.id + "', 'REQUESTED', strftime('%Y-%m-%dT%H:%M:%fZ','now'), 'TUGGER_FAULT', '" + faulted + "') ON CONFLICT(vin) DO UPDATE SET seq = excluded.seq, tugger_id = excluded.tugger_id, state = 'REQUESTED', updated_at = excluded.updated_at, reason = 'TUGGER_FAULT', from_tugger = excluded.from_tugger"} TO SOURCE SupplierBDB
+        moves.push({seq: n, vin: vin, fromTugger: faulted, toTugger: pick.id})
+        parts.push("seq " + n + " to " + pick.id)
+    }
+}
+
+var total = ordered.size()
+var checkSummary = "Vantiq found " + total + " seat sets on " + faulted + " (" + carried.size() + " already on it) and checked the other tuggers and their chargers over OPC UA: " + seen.join("; ")
+var summary = "Vantiq asked Supplier B to move " + moves.size() + " seat sets off " + faulted + ": " + parts.join(", ")
+if (moves.size() < total) {
+    summary = summary + ". " + (total - moves.size()) + " could not be placed and need a person to decide"
+}
+var assignedTs = now()
+var result = {kind: "TuggerFault", ts: assignedTs, faultTs: event.ts, tugger: faulted, code: event.detail.code, description: event.detail.description, carrying: event.detail.carrying, checkedTs: checkedTs, assignedTs: assignedTs, checkSummary: checkSummary, moves: moves, unplaced: total - moves.size(), summary: summary}
+return result

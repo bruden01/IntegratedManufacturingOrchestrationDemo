@@ -44,6 +44,7 @@ TICK_SEC = 0.25        # real seconds per loop iteration
 PICK_DELAY_SEC = 4.0   # real seconds from Vantiq reserving a spare to the picker taking it from the bin
 RELEASE_DELAY_SEC = 3.0   # real seconds from the pick to the supplier releasing the hold on the seat set
 PICK_QUEUE_DELAY_SEC = 1.0   # real seconds for Supplier A to confirm each re-prioritized pick
+TUGGER_MOVE_DELAY_SEC = 4.0   # real seconds for Supplier B to move the loads off a faulted tugger
 TUGGER_ASSIGN_DELAY_SEC = 2.0   # real seconds for Supplier B to assign the tugger Vantiq asked for
 HOLD_DELAY_SEC = 3.0   # real seconds from a failed quality scan to the supplier's system holding the seat set
 
@@ -313,6 +314,9 @@ class Simulator:
                     })
                     last = self.vehicles[-1]
                     entering = self._make_vehicle(last['seq'] + 1, last['need'] + TAKT_SEC)
+                    if self.tuggers[entering['tugger']]['state'] == 'FAULT':
+                        # The fleet system does not schedule a faulted tugger.
+                        entering['tugger'] = next(t['id'] for t in self.tuggers.values() if t['state'] != 'FAULT')
                     self.vehicles.append(entering)
                     if self.erp:
                         self.erp.update_seat_set(entering)
@@ -485,7 +489,38 @@ class Simulator:
             'carrying': [v['seq'] for v in carrying], 'source': 'supplier-b', 'ts': now_iso(),
         })
         self._publish_tugger(t)
+        if self.erp:
+            threading.Thread(target=self._tugger_move_worker, args=(self.epoch,), daemon=True).start()
         return {'tugger': 'T3', 'code': 'E-41', 'carrying': [v['seq'] for v in carrying]}
+
+    def _tugger_move_worker(self, epoch):
+        """Supplier B's fleet system. Vantiq writes the moves off the faulted tugger into tugger_requests; Supplier B
+        sees them, moves the loads, and reports that it has."""
+        deadline = time.time() + 60
+        rows = []
+        while time.time() < deadline and not rows:
+            if epoch != self.epoch:
+                return
+            rows = self.erp.requested_moves()
+            if not rows:
+                time.sleep(0.5)
+        if not rows:
+            return
+        time.sleep(TUGGER_MOVE_DELAY_SEC)
+        moved = []
+        with self.lock:
+            if epoch != self.epoch:
+                return
+            for vin, seq, to, frm in rows:
+                for v in self.vehicles:
+                    if v['vin'] == vin:
+                        v['tugger'] = to
+                self.erp.confirm_tugger(vin, seq, to)
+                moved.append({'seq': seq, 'vin': vin, 'fromTugger': frm, 'toTugger': to})
+            self.pub.publish(f'{TOPIC_TUGGER}/{rows[0][3]}/fault', {
+                'type': 'TuggerReassigned', 'tugger': rows[0][3], 'moved': moved,
+                'source': 'supplier-b', 'ts': now_iso(),
+            })
 
     def _scenario_charger(self):
         """Charging station CHG-2 trips a contactor fault (OPC UA machine data only)."""

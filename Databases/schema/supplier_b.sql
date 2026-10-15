@@ -20,5 +20,7 @@ CREATE TABLE IF NOT EXISTS tugger_requests (
     seq        INTEGER NOT NULL,
     tugger_id  TEXT NOT NULL REFERENCES tuggers(id),
     state      TEXT NOT NULL,          -- REQUESTED, CONFIRMED
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    reason     TEXT NOT NULL DEFAULT 'REPLACEMENT',   -- REPLACEMENT (damaged seat) or TUGGER_FAULT (loads moved off a faulted tugger)
+    from_tugger TEXT                                   -- the faulted tugger, for TUGGER_FAULT
 );

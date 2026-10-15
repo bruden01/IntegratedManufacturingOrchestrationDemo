@@ -1,0 +1,92 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : []
+  },
+  "ars_relationships" : [],
+  "description" : "Reacts to a tugger fault: finds the seat sets on the faulted tugger, picks healthy tuggers from Supplier B's fleet and the OPC UA chargers, asks Supplier B to move the loads, and reports each step. A plain service, not a collaboration.",
+  "eventTypes" : {
+    "InboundTuggerEvent" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.Fleet.InboundTuggerEvent/EventStream",
+      "isPrivate" : false,
+      "isReliable" : false
+    },
+    "OutboundUIUpdate" : {
+      "description" : "This outbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    }
+  },
+  "globalType" : null,
+  "interface" : [
+    {
+      "name" : "handle",
+      "description" : "Handles a tugger fault or Supplier B's report that it moved the loads, and returns a UI update.",
+      "parameters" : [
+        {
+          "name" : "event",
+          "type" : null,
+          "multi" : false,
+          "required" : true,
+          "description" : "Normalized TuggerFault or TuggerReassigned event"
+        }
+      ],
+      "returnType" : {
+        "type" : "Object",
+        "multi" : false
+      }
+    },
+    {
+      "name" : "reassign",
+      "description" : "Moves the faulted tugger's seat sets onto healthy tuggers by writing requests into Supplier B's tugger_requests, and returns a UI update.",
+      "parameters" : [
+        {
+          "name" : "event",
+          "type" : null,
+          "multi" : false,
+          "required" : true,
+          "description" : "Normalized TuggerFault event"
+        }
+      ],
+      "returnType" : {
+        "type" : "Object",
+        "multi" : false
+      }
+    },
+    {
+      "name" : "moved",
+      "description" : "Turns Supplier B's report that it moved the loads into a UI update with the recomputed buffer.",
+      "parameters" : [
+        {
+          "name" : "event",
+          "type" : null,
+          "multi" : false,
+          "required" : true,
+          "description" : "Normalized TuggerReassigned event"
+        }
+      ],
+      "returnType" : {
+        "type" : "Object",
+        "multi" : false
+      }
+    }
+  ],
+  "internalEventHandlers" : [],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.Fleet",
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : {}
+}

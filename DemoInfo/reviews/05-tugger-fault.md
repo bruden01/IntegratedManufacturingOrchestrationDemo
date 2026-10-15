@@ -36,3 +36,14 @@ Answer each one by filling in the line under it (a one-word answer or "go with y
 
 ## Done when
 Clicking Tugger fault makes Vantiq detect it, reassign the loads and show each step in the log; the two rows say "Moved from T3 to T1", the buffer drops and the tile reads Watch.
+
+## Build status (2026-10-15)
+Decisions: all taken as recommended. (1) handled automatically; (2) the fault takes the tightest buffer to 8:50 (Watch), then moved sets carry `reassignSec` 150 in `Board.bufferModel`, so it recovers to about 11:50 (Low); the script's "6:10" wording needs updating in item 6; (3) charger and conveyor only as inputs; (4) a "Tugger T3" block in the Behind the scenes panel, built into `App.jsx` (item 1 still open); (5) reset is enough. Also: no collaboration for the fault (plain `Fleet` service, like `BuildOrder`); capacity applies only to sets already on a tugger, because capacity is 4 per trip and each tugger has 4 sets assigned in the window.
+
+Built:
+- **Vantiq.** New `Fleet` service with handler `Fleet.InboundTuggerEvent` -> `Fleet.handle` -> `OutboundUIUpdate`. `Fleet.reassign` reads Supplier B's tuggers and assignments, Supplier A's seat-set stages, the plant MES, and each other tugger's charger over OPC UA; moves every set assigned to the faulted tugger (already-loaded first) to the healthiest tugger (highest charge, then fewest sets) by writing `tugger_requests` rows (`reason = 'TUGGER_FAULT'`, `from_tugger`). `Fleet.moved` turns Supplier B's confirmation into an update with the recomputed tightest buffer and risk. `Tugger` gains outbound event `OutboundTuggerEvent`, published by `Tugger.Fault` after normalizing. `Events.fromFault` also maps a `TuggerReassigned` message.
+- **Buffer.** `Board.getSequenceBoard` reads confirmed fault moves and adds `reassignSec` to those rows; each row has `movedFrom`.
+- **Simulator.** `_tugger_move_worker` waits for the requests, moves the loads after `TUGGER_MOVE_DELAY_SEC` (4 s), writes `assignments`, and reports `TuggerReassigned` on the tugger fault topic. `tugger_requests` gained `reason` and `from_tugger` (added to an existing database at startup). New vehicles entering the window skip a faulted tugger.
+- **Web.** The mock log line for the Tugger button is gone; the panel block, log lines and the "Moved from T3 to T1" row note come from Vantiq.
+
+Routes to draw in the Modeler (cannot be written through the API): add the `Fleet` service to the design model, then (1) `Tugger.OutboundTuggerEvent` -> `Fleet.InboundTuggerEvent`, (2) `Fleet.OutboundUIUpdate` -> `UIUpdates.InboundUIUpdate`.

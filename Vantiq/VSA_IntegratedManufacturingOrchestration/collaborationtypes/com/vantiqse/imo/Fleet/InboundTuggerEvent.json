@@ -1,0 +1,87 @@
+{
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "5a1c9e50-3333-4b7e-9a10-000000000001": {
+          "x": 0,
+          "y": 0
+        },
+        "5a1c9e50-3333-4b7e-9a10-000000000002": {
+          "x": 0,
+          "y": 80
+        },
+        "5a1c9e50-3333-4b7e-9a10-000000000003": {
+          "x": 0,
+          "y": 160
+        }
+      },
+      "lastZoomRequest": 0,
+      "scale": 3.4,
+      "translate": [
+        446.5,
+        112.7
+      ]
+    },
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
+  },
+  "ars_relationships": [],
+  "assembly": {
+    "EventStream": {
+      "configuration": {
+        "childStreams": [
+          "Progress"
+        ],
+        "eventTypeName": "InboundTuggerEvent",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Fleet",
+        "parentStreams": []
+      },
+      "downstreamReferences": {},
+      "name": "EventStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "5a1c9e50-3333-4b7e-9a10-000000000001"
+    },
+    "Progress": {
+      "configuration": {
+        "childStreams": [
+          "OutboundUIUpdate"
+        ],
+        "parentStreams": [
+          "EventStream"
+        ],
+        "transformation": "com.vantiqse.imo.Fleet.handle"
+      },
+      "downstreamReferences": {},
+      "name": "Progress",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "uuid": "5a1c9e50-3333-4b7e-9a10-000000000002"
+    },
+    "OutboundUIUpdate": {
+      "configuration": {
+        "eventTypeName": "OutboundUIUpdate",
+        "parentStreams": [
+          "Progress"
+        ],
+        "service": "com.vantiqse.imo.Fleet"
+      },
+      "downstreamReferences": {},
+      "name": "OutboundUIUpdate",
+      "pattern": "PublishToEventType",
+      "patternVersion": 3,
+      "uuid": "5a1c9e50-3333-4b7e-9a10-000000000003"
+    }
+  },
+  "contextualizedAssembly": {},
+  "description": "A tugger fault is reassigned to healthy tuggers, and Supplier B's report that it moved the loads is reported, as UI updates.",
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [],
+  "name": "com.vantiqse.imo.Fleet.InboundTuggerEvent"
+}

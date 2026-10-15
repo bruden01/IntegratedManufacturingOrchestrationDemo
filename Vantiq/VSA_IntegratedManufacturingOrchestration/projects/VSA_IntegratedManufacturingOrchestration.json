@@ -918,6 +918,35 @@
     "name" : "com.vantiqse.imo.BuildOrder.InboundPickQueueConfirmed",
     "resourceReference" : "/collaborationtypes/com.vantiqse.imo.BuildOrder.InboundPickQueueConfirmed",
     "type" : 12
+  }, {
+    "name" : "com.vantiqse.imo.Fleet",
+    "resourceReference" : "/services/com.vantiqse.imo.Fleet",
+    "type" : 63
+  }, {
+    "name" : "com.vantiqse.imo.Fleet.reassign",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "reassign",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Fleet.reassign",
+    "serviceName" : "Fleet",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.Fleet.moved",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "moved",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Fleet.moved",
+    "serviceName" : "Fleet",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.Fleet.handle",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "handle",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Fleet.handle",
+    "serviceName" : "Fleet",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.Fleet.InboundTuggerEvent",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Fleet.InboundTuggerEvent",
+    "type" : 12
   } ],
   "tools" : [ {
     "isPinned" : false,

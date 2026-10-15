@@ -48,7 +48,7 @@
     },
     "Normalize" : {
       "configuration" : {
-        "childStreams" : [ "PublishNormalized" ],
+        "childStreams" : [ "PublishNormalized", "PublishOutbound" ],
         "parentStreams" : [ "EventStream" ],
         "transformation" : "com.vantiqse.imo.Events.fromFault"
       },
@@ -66,6 +66,17 @@
       "description" : "Publishes the normalized event to the Events service.",
       "name" : "PublishNormalized",
       "pattern" : "PublishToService",
+      "patternVersion" : 3
+    },
+    "PublishOutbound" : {
+      "configuration" : {
+        "eventTypeName" : "OutboundTuggerEvent",
+        "parentStreams" : [ "Normalize" ],
+        "service" : "com.vantiqse.imo.Tugger"
+      },
+      "description" : "Publishes the normalized tugger event as the Tugger service's outbound event, for the design model to route.",
+      "name" : "PublishOutbound",
+      "pattern" : "PublishToEventType",
       "patternVersion" : 3
     }
   },

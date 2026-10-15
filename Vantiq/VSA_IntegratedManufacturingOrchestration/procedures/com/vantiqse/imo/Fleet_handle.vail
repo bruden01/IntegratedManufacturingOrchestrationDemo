@@ -1,0 +1,12 @@
+// Entry point for a tugger event from Supplier B. A fault is handled by Fleet.reassign; Supplier B's report that it has moved the loads by Fleet.moved.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Fleet.handle(event REQUIRED DESCRIPTION "Normalized TuggerFault or TuggerReassigned event"): Object
+
+var result = null
+if (event.type == "TuggerReassigned") {
+    result = Fleet.moved(event)
+} else {
+    result = Fleet.reassign(event)
+}
+return result

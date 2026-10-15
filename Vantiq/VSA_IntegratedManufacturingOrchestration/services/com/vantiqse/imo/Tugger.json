@@ -22,6 +22,12 @@
       "isPrivate" : true,
       "isReliable" : false
     },
+    "OutboundTuggerEvent" : {
+      "description" : "A normalized tugger fault, or Supplier B's report that it moved the loads off a faulted tugger.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    },
     "Telemetry" : {
       "direction" : "INBOUND",
       "implementingResource" : "/collaborationtypes/com.vantiqse.imo.Tugger.Telemetry/EventStream",
