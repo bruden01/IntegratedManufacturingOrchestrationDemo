@@ -38,7 +38,7 @@ Suggested order: 7 and 1 first, then 2, then 3, 4 and 5 (any order), with 6 at a
 5. Those two events go `Seating` -> `Issue.InboundSeatingProgress` -> `Issue.progressUpdate`, which completes the collaboration on release.
 6. Every step becomes a `OutboundUIUpdate` from `Issue`, routed to `UIUpdates.InboundUIUpdate`, then `UIUpdatePayload`, which the web app subscribes to.
 
-**What is mock today.** Build-order change and tugger fault (demo steps 4 and 6) are button-driven mocks on the dashboard; the simulator sends the events but Vantiq does nothing with them. The KPIs (tightest buffer, event to action, exceptions handled) are mock. The "Need in" countdown is static between board refreshes.
+**What is mock today (updated 2026-10-15).** The tugger fault (demo step 6) is a button-driven mock; the simulator sends the event but Vantiq does nothing with it. The build-order change (step 4) is built: see item 3. The buffer, risk tile and "Event to action" now come from Vantiq data (items 2). "Exceptions handled automatically" is still a count of pressed buttons. The "Need in" countdown now ticks from the board's timestamps and the simulator speed. The dashboard's UI-update subscription was fixed (`Web/src/services/updates.js`), so damaged-seat and build-order steps reach the log.
 
 ## Rules that apply to every session
 

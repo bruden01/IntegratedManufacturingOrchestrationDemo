@@ -1,7 +1,7 @@
 # 4. Finishing the damaged seat across all systems (demo step 5)
 
 ## Why this needs review
-The feedback asks that the damaged-seat scenario show orchestration across the plant MES, two supplier databases, OPC UA machine data and the tugger system. Today the flow uses the plant MES (to look up the seat spec) and Supplier A's database (reserve the spare). Supplier B's database and the tuggers only feed the board display, and OPC UA is not involved. The user said this scenario needs to be finished.
+The feedback asks that the damaged-seat scenario show orchestration across the plant MES, two supplier databases, OPC UA machine data and the tugger system. As of 2026-10-15 the flow uses the plant MES (to look up the seat spec) and Supplier A's database (reserve the spare). Supplier B's database and the tuggers only feed the board display, and OPC UA is not involved. The user said this scenario needs to be finished.
 
 ## What exists now
 See the shared README for the full flow. The steps today, in the Behind the scenes panel: Supplier A vision check fails, Supplier A places the hold, Vantiq reserves a spare, the warehouse picker takes it, the hold is released and Vantiq closes the case.
@@ -15,6 +15,35 @@ After the spare is picked (or at the point the replacement is ready to move), ad
 3. **Supplier B acts.** The simulator's tugger honors the assignment and the seat set goes ON_TUGGER on that tugger.
 4. **Reports.** New steps in the case record and the log (for example "Vantiq checked T1 and its charger CHG-1", "Vantiq assigned the replacement to T1").
 5. **Buffer.** The hold and replacement delay the seat set; the buffer (item 2) reflects it and the script's "held the line-side time" claim becomes visible.
+
+## What changed since this document was written (2026-10-15)
+Read this before the proposal; it changes what a new session can reuse.
+- **Build-order change is built** (item 3, see its Build status). It is the working model to copy: a plain `BuildOrder` service with two visual event handlers (`InboundBuildOrderChange`, `InboundPickQueueConfirmed`), procedures `BuildOrder.reprioritize` / `BuildOrder.confirmed`, a `pick_queue` table in Supplier A's database that Vantiq writes and the simulator acts on (`_pick_queue_worker` in `Simulation/simulator.py`, `requested_picks` / `confirm_pick` in `Simulation/erp.py`), a progress event posted back as a `PartStatus` stage and filtered in `SeatingData`, and a route to `UIUpdates`. Item 4 can follow the same shape with Supplier B's `assignments` table.
+- **The dashboard subscription was fixed.** UI updates now reach the dashboard. A service's outbound event is subscribed to as `resourceName: 'events'`, `resourceId: '/services/<service>/<event>'`, `persistent: true` (see `Web/src/services/updates.js`). The bare `service/event` form is rejected with a 400. The damaged-seat panel and log now fill from Vantiq.
+- **The design model routes read back correctly** (item 7 is resolved). Routes must still be drawn in the Modeler, never written through the API.
+- **The buffer is computed from Vantiq** (item 2): `Board.bufferModel` holds planned slack (860 s), watch threshold (600 s), hold 100 s, replacement-to-be-picked 60 s, tugger fault 330 s. `Board.getSequenceBoard` returns `bufferSec` per vehicle. A damaged seat already takes the tightest buffer to 11:40. Adding the tugger step must not break this; if the replacement's tugger assignment should shorten or extend the delay, change the numbers in `Board.bufferModel`.
+- **Case-record item 1 is still open**: the damaged-seat case's step list is still built in the web page from UI updates (`incidentSteps` in `Web/src/App.jsx`). New steps for this item must appear in the "Behind the scenes" panel and the event log; either extend `incidentSteps` and the `UIUpdates` handling in `App.jsx`, or settle item 1 first.
+
+## Where the pieces are
+- **Plant MES lookup, spare reservation:** `Vantiq/.../procedures/com/vantiqse/imo/Issue_enrichDamagedSeating.vail` (reads `PlantMESDB`, reserves in `SupplierADB`, returns the UI update payload).
+- **Pick, hold release:** simulator `_picker` in `Simulation/simulator.py` (`REPLACEMENT_PICKED` then `HOLD_RELEASED`, posted to `Seating` as `PartStatus`), normalized by `Events.fromPartStatus`, filtered in `collaborationtypes/.../Seating/SeatingData.json` (`FilterProgress`), handled by `Issue.InboundSeatingProgress` -> `Issue.progressUpdate`.
+- **Supplier B database:** `Databases/schema/supplier_b.sql` (`tuggers`, `assignments(seq, tugger_id)`); the simulator rewrites `assignments` from each vehicle's `tugger` in `erp.sync_build_orders`/`_insert_assignments`, so today the assignment follows the simulator's fixed `TUGGER_CYCLE`, and a read of `assignments` for the damaged vehicle returns whatever the cycle gave it.
+- **OPC UA:** `SupplierBMachines` source, `Machines` service; chargers `CHG-1..3` (`State`, `ChargePct`, `FaultCode`), pushed by `_update_opcua` in the simulator. `ChargePct` is a simple decreasing value, `State` is `CHARGING` when the tugger is docked, else `IDLE`. Vantiq has no procedure that reads machine state on demand; `Machines` only normalizes the feed into `Events`. An on-demand read of a charger (item 1 in the proposal) needs either a procedure that queries the source or the latest normalized event.
+- **The `SupplierBDB` JDBC source** reads (the board reads `tuggers` and `assignments` from it) but a write has never been run against it. Test one first (`PUBLISH {query: "..."} TO SOURCE SupplierBDB`, as the reservation does for Supplier A).
+
+## Patterns and gotchas that cost time in the last session
+- **Writing to a supplier:** `PUBLISH {query: "<SQL>"} TO SOURCE <Source>` runs any statement, including `INSERT ... ON CONFLICT DO UPDATE`. Escape single quotes in values (`.replace("'", "''")`).
+- **New service event:** declare the event type on the service (`eventTypes`), then draw the route in the Modeler. Inbound visual handlers belong in the event type's `implementingResource`, not in `internalEventHandlers` (leave that `[]` or the service shows an error). A service with an explicit `interface` needs every procedure listed there.
+- **Deploying to Vantiq:** update the local file and the server together (the MCP `insert`/`update` tools). The `update` response for a procedure on `Board` is huge; check `vailErrors` with a `select` using `props` instead. Collaboration types are updated by `name` with the full `assembly`.
+- **Simulator:** the user restarts it. A new table needs a restart (it creates tables from `Databases/schema/*.sql` at startup). `POST http://127.0.0.1:8765/scenario/damage` triggers the damaged seat, `/reset` resets; use them to test.
+- **Do not repeat:** do not rewrite the design model through the API; do not read `system.collaborations`; keep JSON file formatting as the repo has it (service and project files use Jackson style `"key" : value`).
+- **Clocks:** the simulator and the Vantiq server clocks agree to about 100 ms, so timestamps can be compared.
+
+## How to test
+1. Reset, then press Damaged seat (or `POST /scenario/damage`).
+2. The Behind the scenes panel and event log should show every step with its actor, including the new Supplier B and OPC UA steps and a named tugger.
+3. `sqlite3 Databases/data/supplier_b.db "select * from assignments"` shows the replacement's assignment written by Vantiq.
+4. The tightest buffer dips (11:40 today) and recovers on release.
 
 ## Decisions needed from you
 Answer each one by filling in the line under it (a one-word answer or "go with your recommendation" is fine). A fresh session should not build until these are answered.
