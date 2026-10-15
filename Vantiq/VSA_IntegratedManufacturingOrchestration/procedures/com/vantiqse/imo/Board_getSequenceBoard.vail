@@ -1,4 +1,4 @@
-// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence. Rows are in build order, which is line-side need order, so a build-order swap reorders the rows.
+// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence. Each row has a buffer (planned slack minus the delay from a hold, a pending replacement or a tugger fault). Rows are in build order, which is line-side need order, so a build-order swap reorders the rows.
 package com.vantiqse.imo
 import source com.vantiqse.imo.PlantMESDB
 import source com.vantiqse.imo.SupplierADB
@@ -6,18 +6,25 @@ import source com.vantiqse.imo.SupplierBDB
 
 STATELESS PROCEDURE Board.getSequenceBoard(): Object
 
-var ordersRes = SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin, vehicle, seat_spec, rev, need_in_sec FROM build_orders ORDER BY need_in_sec, seq"
+var ordersRes = SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin, vehicle, seat_spec, rev, need_in_sec, updated_at FROM build_orders ORDER BY need_in_sec, seq"
 var seatSetsRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, stage, hold, defect FROM seat_sets"
 var inventoryRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin, seat_spec, on_hand, reserved FROM seat_inventory ORDER BY bin"
 var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.seq AS seq, a.tugger_id AS tugger_id FROM assignments a"
 var tuggersRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id"
 
+var model = Board.bufferModel()
 var orders = Board.rowsOf(ordersRes)
 var seatSets = Board.rowsOf(seatSetsRes)
 var inventory = Board.rowsOf(inventoryRes)
 var assignments = Board.rowsOf(assignmentsRes)
 var tuggers = Board.rowsOf(tuggersRes)
 
+var reservedBySpec = {}
+for (inv in inventory) {
+    if (inv.reserved > 0) {
+        reservedBySpec[inv.seat_spec] = true
+    }
+}
 var seatByVin = {}
 for (s in seatSets) {
     seatByVin[s.vin] = s
@@ -41,7 +48,16 @@ var tuggerId = null
 var fault = null
 var seat = null
 var tugger = null
+var delay = 0
+var why = []
+var bufferSec = 0
+var tightest = null
+var tightestVin = null
+var asOf = null
 for (o in orders) {
+    if (asOf == null || o.updated_at > asOf) {
+        asOf = o.updated_at
+    }
     stage = "QUEUED"
     hold = false
     defect = null
@@ -59,14 +75,33 @@ for (o in orders) {
             fault = tugger.fault_code
         }
     }
+    delay = 0
+    why = []
+    if (hold) {
+        delay = delay + model.holdSec
+        why.push("hold")
+        if (reservedBySpec[o.seat_spec] == true) {
+            delay = delay + model.replacementPendingSec
+            why.push("replacement to be picked")
+        }
+    }
+    if (fault != null) {
+        delay = delay + model.tuggerFaultSec
+        why.push("tugger fault")
+    }
+    bufferSec = model.plannedSlackSec - delay
+    if (tightest == null || bufferSec < tightest) {
+        tightest = bufferSec
+        tightestVin = o.vin
+    }
     if (counts.has(stage)) {
         counts[stage] = counts[stage] + 1
     }
     if (o.rev > rev) {
         rev = o.rev
     }
-    rows.push({seq: o.seq, vin: o.vin, vehicle: o.vehicle, seatSpec: o.seat_spec, needInSec: o.need_in_sec, stage: stage, hold: hold, defect: defect, tugger: tuggerId, tuggerFault: fault})
+    rows.push({seq: o.seq, vin: o.vin, vehicle: o.vehicle, seatSpec: o.seat_spec, needInSec: o.need_in_sec, stage: stage, hold: hold, defect: defect, tugger: tuggerId, tuggerFault: fault, bufferSec: bufferSec, delaySec: delay, delayWhy: why})
 }
 
-var result = {rev: rev, rows: rows, stageCounts: counts, tuggers: tuggers, inventory: inventory}
+var result = {rev: rev, rows: rows, stageCounts: counts, tuggers: tuggers, inventory: inventory, tightestBufferSec: tightest, tightestVin: tightestVin, watchSec: model.watchSec, plannedSlackSec: model.plannedSlackSec, asOf: asOf, serverNow: now()}
 return result

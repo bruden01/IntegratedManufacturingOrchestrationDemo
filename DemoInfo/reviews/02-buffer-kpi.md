@@ -20,17 +20,20 @@ The "Tightest buffer to line-side need" KPI, the Low/Watch risk tile and the "Ne
 Answer each one by filling in the line under it (a one-word answer or "go with your recommendation" is fine). A fresh session should not build until these are answered.
 
 1. **Definition of buffer.** Time until needed at line side, minus the estimated time still to get the seat set there; the KPI is the minimum over the window. Right? Recommendation: yes.
-   Your answer:
+   Your answer: Changed. The simulator delivers every seat set exactly at its need time, so need minus lead time sits near zero. Built instead: buffer = planned slack (860 s) minus the delay from active exceptions; the KPI is the minimum over the window.
 2. **Where the lead times per stage come from.** Options: (a) derive them from the simulator's stage thresholds, (b) a small table kept in Vantiq. Recommendation: (b), so Vantiq does not depend on simulator internals.
-   Your answer:
+   Your answer: (b) A procedure in Vantiq, `Board.bufferModel`, holds the numbers: planned slack 860 s, watch threshold 600 s, hold 100 s, replacement still to be picked 60 s, tugger fault 330 s.
 3. **Who runs the countdown.** Options: (a) the page counts down from timestamps the board returns, (b) Vantiq recomputes every poll. Recommendation: (a), with Vantiq returning the base values.
-   Your answer:
+   Your answer: (a) The page counts down "Need in" from the board's `asOf` and `serverNow` and the simulator speed read from `/status`. The buffer itself is steady when healthy, so it has no countdown.
 4. **How much each event delays the buffer.** Hold, a replacement still to come, a tugger reassignment: pick the amounts, or let the session propose numbers that give believable results. Recommendation: the session proposes, you review.
-   Your answer:
+   Your answer: Proposed: hold 100 s plus 60 s while a reserved spare is still to be picked (160 s, the script's 14:20 to 11:40), and 330 s for a faulted tugger. Delays are per vehicle and the tile shows the worst vehicle, they are not summed across vehicles.
 5. **The script's example numbers** (14:20 to 11:40, then 6:10). Reproduce them, or let the real numbers show and change the script to match? Recommendation: let real numbers show and update the script.
-   Your answer:
+   Your answer: Real numbers show. The script's 14:20 to 11:40 reproduces for a damaged seat; a tugger fault alone gives 8:50 (Watch), not 6:10, because the script adds both delays to one vehicle. Update the script to match.
 6. **"Event to action" KPI.** Fix it in this same change using real timestamps, or leave it mock for now? Recommendation: fix it here.
    Your answer: Done (2026-10-15): the tile shows seconds from the plant message (or the later of failed scan and hold) to Vantiq's action, from the UI update timestamps. The buffer itself (items 1 to 5) is still mock.
+
+## Status (2026-10-15)
+Built. `Board.getSequenceBoard` returns a `bufferSec` per vehicle, `tightestBufferSec`, `watchSec`, `asOf` and `serverNow`; `Board.bufferModel` holds the numbers. A damaged seat takes the tightest buffer from 14:20 to 11:40 and back when the hold is released. A tugger fault gives 8:50 (Watch) and stays until doc 05 handles it. The hold dip lasts only as long as the hold (about 10 real seconds at 1x).
 
 ## Done when
 The tightest buffer and the risk tile come from Vantiq data, the countdown ticks, and a damaged seat or a tugger fault visibly reduces the buffer.

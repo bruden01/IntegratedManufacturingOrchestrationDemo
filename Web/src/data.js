@@ -1,4 +1,4 @@
-// Mock constants for the buffer and cost figures. The sequence board itself reads from Vantiq (see App.jsx).
+// Sample data for the connected-sources panel. The buffer comes from Vantiq (Board.bufferModel). The sequence board itself reads from Vantiq (see App.jsx).
 
 export const BASE_VEHICLES = [
   { seq: 2041, vin: '…7K1042', vehicle: 'Traveler · Terra Gray', seat: 'Vinyl · Black · Heated', status: 'On tugger' },
@@ -13,11 +13,6 @@ export const BASE_VEHICLES = [
 
 // Seconds until each position is needed at line side.
 export const NEED_SECONDS = [860, 1040, 1220, 1400, 1580, 1760, 1940, 2120];
-
-export const BASE_SLACK_SECONDS = 860;
-export const DAMAGE_SLACK_COST = 160;
-export const TUGGER_SLACK_COST = 330;
-export const WATCH_THRESHOLD_SECONDS = 600;
 
 export const EVENT_SAMPLE = `{
   "type": "PartSequenced",

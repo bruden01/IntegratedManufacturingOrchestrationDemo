@@ -2,14 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Vantiq from './services/vantiq.js';
 import { subscribeToUIUpdates } from './services/updates.js';
 import { useAuth } from './contexts/AuthContext.jsx';
-import {
-  BASE_SLACK_SECONDS,
-  DAMAGE_SLACK_COST,
-  TUGGER_SLACK_COST,
-  WATCH_THRESHOLD_SECONDS,
-  EVENT_SAMPLE,
-  SOURCES,
-} from './data.js';
+import { EVENT_SAMPLE, SOURCES } from './data.js';
 
 // Vantiq procedure that joins the plant MES, Supplier A and Supplier B systems into the board.
 const BOARD_PROCEDURE = 'com.vantiqse.imo.Board.getSequenceBoard';
@@ -91,6 +84,9 @@ export default function App() {
   const [view, setView] = useState('dashboard');
   const { profile, handleLogout } = useAuth();
   const [board, setBoard] = useState(null);
+  const [boardAt, setBoardAt] = useState(Date.now());
+  const [simSpeed, setSimSpeed] = useState(1);
+  const [, setTick] = useState(0);   // re-render each second so the "Need in" countdown ticks
   const [boardError, setBoardError] = useState('');
   const [resetError, setResetError] = useState('');
   // Back-end activity for the damaged seat, built from the UI updates Vantiq pushes (keyed by VIN).
@@ -205,13 +201,20 @@ export default function App() {
   // The board reads the three systems of record through Vantiq; the simulator keeps them current.
   useEffect(() => {
     let stopped = false;
-    const load = () =>
-      Vantiq.execute(BOARD_PROCEDURE)
-        .then((b) => { if (!stopped) { setBoard(b); setBoardError(''); } })
+    const load = () => {
+      // The simulator's speed turns real seconds into sim seconds for the "Need in" countdown.
+      fetch(`${SIM_URL}/status`)
+        .then((r) => r.json())
+        .then((st) => { if (!stopped) setSimSpeed(st.paused ? 0 : st.speed || 1); })
+        .catch(() => { /* no simulator reachable: keep the last speed */ });
+      return Vantiq.execute(BOARD_PROCEDURE)
+        .then((b) => { if (!stopped) { setBoard(b); setBoardAt(Date.now()); setBoardError(''); } })
         .catch((e) => { if (!stopped) setBoardError(e.message || 'Could not read the board from Vantiq'); });
+    };
     load();
     const id = setInterval(load, BOARD_POLL_MS);
-    return () => { stopped = true; clearInterval(id); };
+    const tickId = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => { stopped = true; clearInterval(id); clearInterval(tickId); };
   }, []);
 
   // UI updates pushed by Vantiq (one subscription for every kind), shown in the incident panel and the event log.
@@ -291,9 +294,14 @@ export default function App() {
     setN(0);
   };
 
-  const slackSec =
-    BASE_SLACK_SECONDS - (flags.damage ? DAMAGE_SLACK_COST : 0) - (flags.tugger ? TUGGER_SLACK_COST : 0);
-  const watch = slackSec < WATCH_THRESHOLD_SECONDS;
+  // The tightest buffer and the risk come from Vantiq (planned slack minus the delay from holds, pending
+  // replacements and tugger faults).
+  const slackSec = board?.tightestBufferSec ?? null;
+  const watch = slackSec !== null && slackSec < (board?.watchSec ?? 600);
+  // Sim seconds since the plant MES wrote the need times: the board's age at the server, plus time since we read it.
+  const simElapsed = board?.asOf && board?.serverNow
+    ? ((Date.parse(board.serverNow) - Date.parse(board.asOf)) / 1000 + (Date.now() - boardAt) / 1000) * simSpeed
+    : 0;
   const handled = Object.values(flags).filter(Boolean).length;
 
   const rows = (board?.rows || []).map((r) => {
@@ -314,7 +322,7 @@ export default function App() {
       note,
       status,
       tone,
-      need: mmss(Math.max(0, Math.round(r.needInSec))),
+      need: mmss(Math.max(0, Math.round(r.needInSec - simElapsed))),
       hot: note !== '',
     };
   });
@@ -389,7 +397,7 @@ export default function App() {
       <section className="kpis">
         <div className="kpi" style={{ borderTopColor: watch ? 'var(--amber)' : 'var(--teal)' }}>
           <div className="kpi-label">Tightest buffer to line-side need</div>
-          <div className="kpi-value" style={{ color: watch ? 'var(--amber)' : 'var(--teal)' }}>{mmss(slackSec)}</div>
+          <div className="kpi-value" style={{ color: watch ? 'var(--amber)' : 'var(--teal)' }}>{slackSec === null ? '—' : mmss(Math.max(0, Math.round(slackSec)))}</div>
           <div className="muted">
             Line-stop risk:{' '}
             <strong style={{ color: watch ? 'var(--amber)' : 'var(--teal)' }}>{watch ? 'Watch' : 'Low'}</strong>
@@ -566,7 +574,7 @@ export default function App() {
               </button>
               <button
                 className={`btn btn-crit${flags.tugger ? ' on' : ''}`}
-                onClick={() => fire('tugger', 'EQUIPMENT', 'Tugger T3 reported fault E-41 (drive) carrying sets for seq 2042 and 2043.', `Reassigned both sets to T1, supervisor notified, buffer cut to ${mmss(BASE_SLACK_SECONDS - (flags.damage ? DAMAGE_SLACK_COST : 0) - TUGGER_SLACK_COST)}`)}
+                onClick={() => fire('tugger', 'EQUIPMENT', 'Tugger T3 reported fault E-41 (drive) carrying sets for seq 2042 and 2043.', 'Reassigned both sets to T1, supervisor notified')}
               >
                 Tugger fault
               </button>
