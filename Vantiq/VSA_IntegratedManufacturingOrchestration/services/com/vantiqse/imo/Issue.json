@@ -65,7 +65,7 @@
     },
     {
       "name": "progressUpdate",
-      "description": "Turns a ReplacementPicked or HoldReleased event into a UI update; a released hold completes the collaboration.",
+      "description": "Turns a ReplacementPicked, ReplacementOnTugger or HoldReleased event into a UI update; a pick requests a tugger, a released hold completes the collaboration.",
       "parameters": [
         {
           "name": "event",
@@ -73,7 +73,34 @@
           "multi": false,
           "required": true,
           "default": null,
-          "description": "Normalized ReplacementPicked or HoldReleased event"
+          "description": "Normalized ReplacementPicked, ReplacementOnTugger or HoldReleased event"
+        }
+      ],
+      "returnType": {
+        "type": "Object",
+        "multi": false
+      },
+      "stateAccess": "stateless"
+    },
+    {
+      "name": "assignTugger",
+      "description": "Checks the tuggers and chargers and asks Supplier B to carry the replacement on the healthiest tugger.",
+      "parameters": [
+        {
+          "name": "vin",
+          "type": "String",
+          "multi": false,
+          "required": true,
+          "default": null,
+          "description": "VIN of the vehicle whose replacement needs a tugger"
+        },
+        {
+          "name": "seq",
+          "type": "Integer",
+          "multi": false,
+          "required": false,
+          "default": null,
+          "description": "Build sequence of the vehicle"
         }
       ],
       "returnType": {

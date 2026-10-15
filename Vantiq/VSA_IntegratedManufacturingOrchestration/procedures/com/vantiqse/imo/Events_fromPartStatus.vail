@@ -21,6 +21,8 @@ if (e.stage == "QUEUED") {
     t = "PartHeld"
 } else if (e.stage == "REPLACEMENT_PICKED") {
     t = "ReplacementPicked"
+} else if (e.stage == "TUGGER_ASSIGNED") {
+    t = "ReplacementOnTugger"
 } else if (e.stage == "HOLD_RELEASED") {
     t = "HoldReleased"
 } else if (e.stage == "PICK_QUEUE_CONFIRMED") {

@@ -1,0 +1,68 @@
+// Finds a tugger for a replacement seat set. Reads each tugger's state from Supplier B's database and its charger's state and charge level over OPC UA, picks the healthiest tugger (highest charge, then fewest seat sets), and writes the request into Supplier B's tugger_requests table. Supplier B's fleet system then assigns it. Returns the check and the assignment for the UI update.
+package com.vantiqse.imo
+import source com.vantiqse.imo.SupplierBDB
+import source com.vantiqse.imo.SupplierBMachines
+import service com.vantiqse.imo.Board
+
+STATELESS PROCEDURE Issue.assignTugger(vin String REQUIRED DESCRIPTION "VIN of the vehicle whose replacement needs a tugger", seq Integer DESCRIPTION "Build sequence of the vehicle"): Object
+
+var checkedTs = now()
+var tuggers = Board.rowsOf(SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id")
+var loads = Board.rowsOf(SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT tugger_id, COUNT(*) AS n FROM assignments GROUP BY tugger_id")
+
+var checked = []
+var best = null
+for (t in tuggers) {
+    var charger = "CHG-" + t.id.substring(1)
+    var chargerState = null
+    var chargePct = null
+    var chargerFault = null
+    var stateRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".State", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+    var pctRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".ChargePct", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+    var faultRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".FaultCode", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+    if (stateRes != null) {
+        chargerState = stateRes.dataValue
+    }
+    if (pctRes != null) {
+        chargePct = pctRes.dataValue
+    }
+    if (faultRes != null) {
+        chargerFault = faultRes.dataValue
+    }
+    var load = 0
+    for (l in loads) {
+        if (l.tugger_id == t.id) {
+            load = l.n
+        }
+    }
+    var healthy = (t.state != "FAULT") && (chargerState != "FAULT") && (chargerFault == null || chargerFault == "") && chargePct != null
+    checked.push({tugger: t.id, tuggerState: t.state, charger: charger, chargerState: chargerState, chargePct: chargePct, load: load, healthy: healthy})
+    if (healthy) {
+        if (best == null || chargePct > best.chargePct || (chargePct == best.chargePct && load < best.load)) {
+            best = {tugger: t.id, charger: charger, chargePct: chargePct, load: load}
+        }
+    }
+}
+
+var assignedTs = null
+var tugger = null
+var charger = null
+var chargePct = null
+var checkSummary = "Vantiq checked the tuggers and chargers: no healthy tugger with a working charger for " + vin
+var summary = "No tugger available for the replacement of " + vin
+if (best != null) {
+    tugger = best.tugger
+    charger = best.charger
+    chargePct = best.chargePct
+    var safeVin = vin.replace("'", "''")
+    var seqValue = seq
+    if (seqValue == null) {
+        seqValue = 0
+    }
+    checkSummary = "Vantiq checked " + checked.size() + " tuggers and their chargers over OPC UA: " + tugger + " is healthy and " + charger + " is at " + chargePct + "%"
+    PUBLISH {query: "INSERT INTO tugger_requests (vin, seq, tugger_id, state, updated_at) VALUES ('" + safeVin + "', " + seqValue + ", '" + tugger + "', 'REQUESTED', strftime('%Y-%m-%dT%H:%M:%fZ','now')) ON CONFLICT(vin) DO UPDATE SET seq = excluded.seq, tugger_id = excluded.tugger_id, state = 'REQUESTED', updated_at = excluded.updated_at"} TO SOURCE SupplierBDB
+    assignedTs = now()
+    summary = "Vantiq asked Supplier B to carry the replacement of " + vin + " on " + tugger
+}
+
+return {tugger: tugger, charger: charger, chargePct: chargePct, checked: checked, checkedTs: checkedTs, assignedTs: assignedTs, checkSummary: checkSummary, assignSummary: summary}

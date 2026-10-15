@@ -61,3 +61,12 @@ Answer each one by filling in the line under it (a one-word answer or "go with y
 
 ## Done when
 A damaged-seat run shows steps touching plant MES, Supplier A, Supplier B and OPC UA, each attributed to who did it, ending with the replacement on a named tugger and the case closed.
+
+## Build status (2026-10-15)
+Decisions: all five taken as recommended (assign the tugger; simulator honors it; steps after the pick and before the release; no-spare branch unchanged; vehicle fixed at position 4). Step list extended in `Web/src/App.jsx` (`incidentSteps`), item 1 still open.
+
+Built, not yet run end to end:
+- **Request table, not a direct `assignments` write.** `Databases/schema/supplier_b.sql` gains `tugger_requests(vin, seq, tugger_id, state)`. The simulator rewrites `assignments` on every resync, so a direct write would be clobbered. Vantiq writes a REQUESTED row (same shape as `pick_queue`); the simulator's `_picker` waits for it, calls `erp.confirm_tugger` (writes `assignments` and sets the vehicle's tugger), posts `PartStatus` stage `TUGGER_ASSIGNED`, then releases the hold. **Needs a simulator restart** (new table).
+- **Vantiq.** New `Issue.assignTugger` reads tuggers and loads from `SupplierBDB`, reads each charger over OPC UA with `SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier, nodeIdentifierType, nsu` (verified working; `queryStyle` is required), picks the healthy tugger with the highest charge then fewest seat sets, and writes the request. `Issue.progressUpdate` calls it on `ReplacementPicked` and handles the new `ReplacementOnTugger`. `Events.fromPartStatus` maps `TUGGER_ASSIGNED`; `SeatingData.FilterProgress` lets it through. No new route: it reuses `Seating -> Issue.InboundSeatingProgress`. Deployed to the server and saved to the files; no compile errors.
+- **Not yet verified:** the write to `SupplierBDB` (the table does not exist until the restart), and the full run.
+- **Charger values are flat.** All three chargers read the same charge, so the pick falls to load then tugger id (T1 today).

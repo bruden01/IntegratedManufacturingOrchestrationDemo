@@ -44,6 +44,7 @@ TICK_SEC = 0.25        # real seconds per loop iteration
 PICK_DELAY_SEC = 4.0   # real seconds from Vantiq reserving a spare to the picker taking it from the bin
 RELEASE_DELAY_SEC = 3.0   # real seconds from the pick to the supplier releasing the hold on the seat set
 PICK_QUEUE_DELAY_SEC = 1.0   # real seconds for Supplier A to confirm each re-prioritized pick
+TUGGER_ASSIGN_DELAY_SEC = 2.0   # real seconds for Supplier B to assign the tugger Vantiq asked for
 HOLD_DELAY_SEC = 3.0   # real seconds from a failed quality scan to the supplier's system holding the seat set
 
 # (vehicle, seat) cycled to build the sequence; matches the dashboard mock.
@@ -432,6 +433,26 @@ class Simulator:
                 return
             self.erp.consume_reserved(bin_id)
             self._post_replacement(v, 'REPLACEMENT_PICKED', bin_id)
+        # Supplier B's fleet system: Vantiq asks for a tugger, Supplier B assigns it. The hold stays until it has.
+        tugger_id = None
+        deadline = time.time() + 60
+        while time.time() < deadline and tugger_id is None and self.erp:
+            if epoch != self.epoch:
+                return
+            tugger_id = self.erp.requested_tugger(v['vin'])
+            if tugger_id is None:
+                time.sleep(0.5)
+        if tugger_id:
+            time.sleep(TUGGER_ASSIGN_DELAY_SEC)
+            with self.lock:
+                if epoch != self.epoch or v not in self.vehicles:
+                    return
+                v['tugger'] = tugger_id
+                self.erp.confirm_tugger(v['vin'], v['seq'], tugger_id)
+                self.pub.post('PartStatus', {
+                    'type': 'PartStatus', 'vin': v['vin'], 'seq': v['seq'], 'stage': 'TUGGER_ASSIGNED',
+                    'tugger': tugger_id, 'bin': bin_id, 'source': 'supplier-b', 'ts': now_iso(),
+                })
         time.sleep(RELEASE_DELAY_SEC)
         with self.lock:
             if epoch != self.epoch or v not in self.vehicles:

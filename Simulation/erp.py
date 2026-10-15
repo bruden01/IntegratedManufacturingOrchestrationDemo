@@ -82,6 +82,7 @@ class Erp:
 
         def supplier_b(c):
             c.execute('DELETE FROM assignments')
+            c.execute('DELETE FROM tugger_requests')
             c.execute('DELETE FROM tuggers')
             c.executemany('INSERT INTO tuggers (id, model, capacity, state, fault_code, updated_at) VALUES (?,?,?,?,NULL,?)',
                           [(tid, m, cap, tuggers[tid]['state'], ts) for tid, (m, cap) in TUGGER_REGISTRY.items()])
@@ -168,6 +169,27 @@ class Erp:
     def _insert_assignments(c, vehicles, ts):
         c.executemany('INSERT INTO assignments (seq, tugger_id, updated_at) VALUES (?,?,?)',
                       [(v['seq'], v['tugger'], ts) for v in vehicles])
+
+    def requested_tugger(self, vin):
+        """Tugger Vantiq has asked Supplier B to carry this seat set on and Supplier B has not yet confirmed, or None."""
+        with self.lock:
+            try:
+                row = self.conns['supplier_b'].execute(
+                    "SELECT tugger_id FROM tugger_requests WHERE vin = ? AND state = 'REQUESTED'", (vin,)).fetchone()
+                return row[0] if row else None
+            except sqlite3.Error:
+                return None
+
+    def confirm_tugger(self, vin, seq, tugger_id):
+        """Supplier B assigns the seat set to the requested tugger and confirms."""
+        ts = now_iso()
+
+        def fn(c):
+            c.execute("UPDATE tugger_requests SET state = 'CONFIRMED', updated_at = ? WHERE vin = ?", (ts, vin))
+            c.execute('INSERT INTO assignments (seq, tugger_id, updated_at) VALUES (?,?,?) '
+                      'ON CONFLICT(seq) DO UPDATE SET tugger_id = excluded.tugger_id, updated_at = excluded.updated_at',
+                      (seq, tugger_id, ts))
+        self._run('supplier_b', fn)
 
     def update_tugger(self, tid, state, fault_code):
         self._run('supplier_b', lambda c: c.execute(

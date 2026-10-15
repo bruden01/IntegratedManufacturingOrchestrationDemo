@@ -41,13 +41,14 @@ const TAG_CLASS = {
 };
 
 
-const STATE_OF_INCIDENT = (inc) => (inc.released ? 'released' : inc.picked ? 'picked' : inc.reserved ? 'reserved' : inc.noSpare ? 'nospare' : 'open');
+const STATE_OF_INCIDENT = (inc) => (inc.released ? 'released' : inc.onTugger ? 'ontugger' : inc.picked ? 'picked' : inc.reserved ? 'reserved' : inc.noSpare ? 'nospare' : 'open');
 
 // One-line callout on the vehicle's row: what the back end is doing right now.
 const incidentNote = (inc) => {
   const st = STATE_OF_INCIDENT(inc);
   if (st === 'released') return 'Supplier A released the hold: replacement on its way';
-  if (st === 'picked') return `Supplier A picked the replacement (bin ${inc.bin})`;
+  if (st === 'ontugger') return `Supplier B assigned the replacement to tugger ${inc.tugger}`;
+  if (st === 'picked') return inc.tugger ? `Supplier A picked the replacement (bin ${inc.bin}), Vantiq asked for tugger ${inc.tugger}` : `Supplier A picked the replacement (bin ${inc.bin})`;
   if (st === 'reserved') return `Vantiq reserved a spare (bin ${inc.bin}), waiting on Supplier A to pick`;
   if (st === 'nospare') return 'Vantiq found no spare in stock';
   return '';
@@ -58,6 +59,7 @@ const holdStatus = (inc) => {
   if (!inc) return 'On hold: finding replacement';
   const st = STATE_OF_INCIDENT(inc);
   if (st === 'nospare') return 'On hold: no spare';
+  if (st === 'ontugger') return `On hold: replacement on ${inc.tugger}`;
   if (st === 'picked') return 'On hold: replacement picked';
   if (st === 'reserved') return 'On hold: replacement reserved';
   return 'On hold: finding replacement';
@@ -73,6 +75,9 @@ const incidentSteps = (inc) => [
     ? { actor: 'Vantiq', text: `No spare ${inc.seatSpec || ''} in stock. Needs a person to decide`, at: inc.noSpare, warn: true }
     : { actor: 'Vantiq', text: `Vantiq finds a spare and reserves it${inc.bin ? ` (bin ${inc.bin})` : ''}`, at: inc.reserved },
   { actor: 'Supplier A', text: 'Warehouse picker takes the spare from the bin', at: inc.picked },
+  { actor: 'Vantiq', text: inc.checkSummary || 'Vantiq checks the tuggers (Supplier B) and their chargers (OPC UA)', at: inc.checkedTs },
+  { actor: 'Vantiq', text: `Vantiq asks Supplier B to carry the replacement${inc.tugger ? ` on ${inc.tugger}` : ''}`, at: inc.assignedTs },
+  { actor: 'Supplier B', text: `Supplier B assigns the replacement to tugger${inc.tugger ? ` ${inc.tugger}` : ''}`, at: inc.onTugger },
   { actor: 'Supplier A', text: 'Hold released, the replacement continues as the seat set. Vantiq closes the case', at: inc.released },
 ];
 
@@ -246,7 +251,10 @@ export default function App() {
           if (u.kind === 'ReplacementReserved' || u.kind === 'NoReplacementAvailable') {
             return { ...prev, [u.vin]: { ...cur, ...u, reserved: u.kind === 'ReplacementReserved' ? u.ts : null, noSpare: u.kind === 'NoReplacementAvailable' ? u.ts : null } };
           }
-          if (u.kind === 'ReplacementPicked') return { ...prev, [u.vin]: { ...cur, bin: u.bin || cur.bin, picked: u.ts } };
+          if (u.kind === 'ReplacementPicked') {
+            return { ...prev, [u.vin]: { ...cur, bin: u.bin || cur.bin, picked: u.ts, tugger: u.tugger || cur.tugger, charger: u.charger, chargePct: u.chargePct, checkSummary: u.checkSummary, checkedTs: u.checkedTs, assignedTs: u.assignedTs } };
+          }
+          if (u.kind === 'ReplacementOnTugger') return { ...prev, [u.vin]: { ...cur, tugger: u.tugger || cur.tugger, onTugger: u.ts } };
           if (u.kind === 'HoldReleased') return { ...prev, [u.vin]: { ...cur, released: u.ts } };
           return prev;
         });
@@ -254,7 +262,8 @@ export default function App() {
         const event = `Seq ${u.seq} (${u.vin}): ${u.summary}`;
         const action =
           u.kind === 'ReplacementReserved' ? `Vantiq reserved the spare from bin ${u.bin}` :
-          u.kind === 'ReplacementPicked' ? 'Supplier A picked the replacement' :
+          u.kind === 'ReplacementPicked' ? (u.tugger ? `Supplier A picked the replacement; Vantiq checked ${u.charger} (${u.chargePct}%) and asked for tugger ${u.tugger}` : 'Supplier A picked the replacement; Vantiq found no tugger') :
+          u.kind === 'ReplacementOnTugger' ? `Supplier B assigned the replacement to tugger ${u.tugger}` :
           u.kind === 'HoldReleased' ? 'Hold released, case closed in Vantiq' : 'No replacement in stock';
         setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag, event, action }, ...prev]);
       }),
