@@ -1,29 +1,27 @@
 {
-  "name": "com.vantiqse.imo.NormalizedEvent",
-  "role": "schema",
-  "properties": {
-    "type": {
-      "type": "String",
-      "required": true
+  "ars_relationships" : [ ],
+  "name" : "com.vantiqse.imo.NormalizedEvent",
+  "properties" : {
+    "detail" : {
+      "type" : "Object"
     },
-    "vin": {
-      "type": "String"
+    "source" : {
+      "required" : true,
+      "type" : "String"
     },
-    "station": {
-      "type": "String"
+    "station" : {
+      "type" : "String"
     },
-    "source": {
-      "type": "String",
-      "required": true
+    "ts" : {
+      "type" : "DateTime"
     },
-    "ts": {
-      "type": "DateTime"
+    "type" : {
+      "required" : true,
+      "type" : "String"
     },
-    "detail": {
-      "type": "Object"
+    "vin" : {
+      "type" : "String"
     }
   },
-  "namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_version": 1
+  "role" : "schema"
 }

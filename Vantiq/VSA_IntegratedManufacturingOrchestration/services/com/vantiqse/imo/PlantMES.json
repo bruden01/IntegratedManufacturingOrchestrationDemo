@@ -15,7 +15,14 @@
   },
   "ars_relationships" : [ ],
   "description" : null,
-  "eventTypes" : { },
+  "eventTypes" : {
+    "OutboundBuildOrderChange" : {
+      "description" : "The plant revised the build order (a swap or pull-forward).",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    }
+  },
   "globalType" : null,
   "interface" : [ ],
   "internalEventHandlers" : [ "/collaborationtypes/com.vantiqse.imo.PlantMES.PlantMESData" ],

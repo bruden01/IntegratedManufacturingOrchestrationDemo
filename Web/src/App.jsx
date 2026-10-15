@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Vantiq from './services/vantiq.js';
+import { subscribeToUIUpdates } from './services/updates.js';
 import { useAuth } from './contexts/AuthContext.jsx';
 import {
   BASE_SLACK_SECONDS,
@@ -13,6 +14,8 @@ import {
 // Vantiq procedure that joins the plant MES, Supplier A and Supplier B systems into the board.
 const BOARD_PROCEDURE = 'com.vantiqse.imo.Board.getSequenceBoard';
 const BOARD_POLL_MS = 3000;
+// Clears what Vantiq holds between demo runs (active Issue collaborations).
+const RESET_PROCEDURE = 'com.vantiqse.utils.Demo.reset';
 const STAGE_LABEL = { QUEUED: 'Queued', PICKING: 'Picking', SEQUENCED: 'Sequenced', STAGED: 'Staged', ON_TUGGER: 'On tugger' };
 
 const SIM_URL = import.meta.env.VITE_SIM_URL || 'http://127.0.0.1:8765';
@@ -39,9 +42,46 @@ const INITIAL_LOG = [
 const TAG_CLASS = {
   'BUILD ORDER': 'chip chip-info',
   QUALITY: 'chip chip-act',
+  SUPPLIER: 'chip chip-info',
   EQUIPMENT: 'chip chip-crit',
   PLANT: 'chip chip-neutral',
 };
+
+
+const STATE_OF_INCIDENT = (inc) => (inc.released ? 'released' : inc.picked ? 'picked' : inc.reserved ? 'reserved' : inc.noSpare ? 'nospare' : 'open');
+
+// One-line callout on the vehicle's row: what the back end is doing right now.
+const incidentNote = (inc) => {
+  const st = STATE_OF_INCIDENT(inc);
+  if (st === 'released') return 'Supplier A released the hold: replacement on its way';
+  if (st === 'picked') return `Supplier A picked the replacement (bin ${inc.bin})`;
+  if (st === 'reserved') return `Vantiq reserved a spare (bin ${inc.bin}), waiting on Supplier A to pick`;
+  if (st === 'nospare') return 'Vantiq found no spare in stock';
+  return '';
+};
+
+// A hold is on the seat set only, not the line. The chip says what is being done about it.
+const holdStatus = (inc) => {
+  if (!inc) return 'On hold: finding replacement';
+  const st = STATE_OF_INCIDENT(inc);
+  if (st === 'nospare') return 'On hold: no spare';
+  if (st === 'picked') return 'On hold: replacement picked';
+  if (st === 'reserved') return 'On hold: replacement reserved';
+  return 'On hold: finding replacement';
+};
+
+const fmtTime = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-GB') : '');
+
+// The damaged seat's path, step by step, with who does each step. Steps not reached yet show as waiting.
+const incidentSteps = (inc) => [
+  { actor: 'Supplier A', text: `Vision check fails at ${inc.station || 'inspection'}: ${inc.defect || 'seat damaged'}`, at: inc.failedTs },
+  { actor: 'Supplier A', text: 'Supplier A system places a hold on the seat set', at: inc.heldTs },
+  inc.noSpare
+    ? { actor: 'Vantiq', text: `No spare ${inc.seatSpec || ''} in stock. Needs a person to decide`, at: inc.noSpare, warn: true }
+    : { actor: 'Vantiq', text: `Vantiq finds a spare and reserves it${inc.bin ? ` (bin ${inc.bin})` : ''}`, at: inc.reserved },
+  { actor: 'Supplier A', text: 'Warehouse picker takes the spare from the bin', at: inc.picked },
+  { actor: 'Supplier A', text: 'Hold released, the replacement continues as the seat set. Vantiq closes the case', at: inc.released },
+];
 
 export default function App() {
   const [flags, setFlags] = useState({ reorder: false, damage: false, tugger: false });
@@ -52,6 +92,11 @@ export default function App() {
   const { profile, handleLogout } = useAuth();
   const [board, setBoard] = useState(null);
   const [boardError, setBoardError] = useState('');
+  const [resetError, setResetError] = useState('');
+  // Back-end activity for the damaged seat, built from the UI updates Vantiq pushes (keyed by VIN).
+  const [incidents, setIncidents] = useState({});
+  // Pick-queue changes after a build-order revision, keyed by VIN: {note, confirmed}.
+  const [moves, setMoves] = useState({});
   const [costPerMin, setCostPerMin] = useState(() => {
     try {
       const v = localStorage.getItem('cost-per-min');
@@ -167,6 +212,44 @@ export default function App() {
     return () => { stopped = true; clearInterval(id); };
   }, []);
 
+  // UI updates pushed by Vantiq (one subscription for every kind), shown in the incident panel and the event log.
+  useEffect(
+    () =>
+      subscribeToUIUpdates((u) => {
+        if (u.kind === 'BuildOrderChanged') {
+          setMoves((prev) => {
+            const next = { ...prev };
+            for (const m of u.moved || []) next[m.vin] = { note: m.note, priority: m.priority, confirmed: false };
+            return next;
+          });
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'BUILD ORDER', event: `Plant revised the build order (rev ${u.rev})`, action: u.summary }, ...prev]);
+          return;
+        }
+        if (u.kind === 'PickQueueConfirmed') {
+          setMoves((prev) => (prev[u.vin] ? { ...prev, [u.vin]: { ...prev[u.vin], confirmed: true } } : prev));
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: `Seq ${u.seq} (${u.vin}): new pick order`, action: u.summary }, ...prev]);
+          return;
+        }
+        setIncidents((prev) => {
+          const cur = prev[u.vin] || { vin: u.vin };
+          if (u.kind === 'ReplacementReserved' || u.kind === 'NoReplacementAvailable') {
+            return { ...prev, [u.vin]: { ...cur, ...u, reserved: u.kind === 'ReplacementReserved' ? u.ts : null, noSpare: u.kind === 'NoReplacementAvailable' ? u.ts : null } };
+          }
+          if (u.kind === 'ReplacementPicked') return { ...prev, [u.vin]: { ...cur, bin: u.bin || cur.bin, picked: u.ts } };
+          if (u.kind === 'HoldReleased') return { ...prev, [u.vin]: { ...cur, released: u.ts } };
+          return prev;
+        });
+        const tag = u.kind === 'NoReplacementAvailable' ? 'EQUIPMENT' : u.kind === 'ReplacementReserved' ? 'QUALITY' : 'SUPPLIER';
+        const event = `Seq ${u.seq} (${u.vin}): ${u.summary}`;
+        const action =
+          u.kind === 'ReplacementReserved' ? `Vantiq reserved the spare from bin ${u.bin}` :
+          u.kind === 'ReplacementPicked' ? 'Supplier A picked the replacement' :
+          u.kind === 'HoldReleased' ? 'Hold released, case closed in Vantiq' : 'No replacement in stock';
+        setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag, event, action }, ...prev]);
+      }),
+    [],
+  );
+
   // Tell the simulator to publish the event. The dashboard still runs its own mock
   // until it reads state from Vantiq, so a failure here is shown but not fatal.
   const [simError, setSimError] = useState(false);
@@ -179,14 +262,23 @@ export default function App() {
     if (flags[key]) return;
     callSim(`/scenario/${key}`);
     setFlags({ ...flags, [key]: true });
-    setLog([{ t: clock(n + 1), tag, event, action }, ...log]);
-    setN(n + 1);
+    // The build-order change is logged from Vantiq's own updates, so it gets no mock line here.
+    if (key !== 'reorder') {
+      setLog([{ t: clock(n + 1), tag, event, action }, ...log]);
+      setN(n + 1);
+    }
   };
 
   const reset = () => {
-    callSim('/reset');
+    // Vantiq first, so the simulator's fresh state never meets a collaboration left from the last run.
+    Vantiq.execute(RESET_PROCEDURE)
+      .then(() => setResetError(''))
+      .catch((e) => setResetError(e.message || 'Vantiq reset failed'))
+      .finally(() => callSim('/reset'));
     setFlags({ reorder: false, damage: false, tugger: false });
     setLog([]);
+    setIncidents({});
+    setMoves({});
     setN(0);
   };
 
@@ -198,8 +290,12 @@ export default function App() {
   const rows = (board?.rows || []).map((r) => {
     const faulted = r.tuggerFault ? `Tugger ${r.tugger} fault ${r.tuggerFault}` : '';
     const held = r.hold ? `Hold: ${r.defect || 'quality'}` : '';
-    const note = [held, faulted].filter(Boolean).join(' · ');
-    const status = r.hold ? 'Held' : STAGE_LABEL[r.stage] || r.stage;
+    const inc = incidents[r.vin];
+    const backend = inc ? incidentNote(inc) : '';
+    const mv = moves[r.vin];
+    const moved = mv ? `${mv.note === 'pulled forward' ? 'Pulled forward' : 'Pushed back'}${mv.confirmed ? ', Supplier A confirmed pick ' + mv.priority : ', waiting on Supplier A'}` : '';
+    const note = [held, faulted, backend, moved].filter(Boolean).join(' · ');
+    const status = r.hold ? holdStatus(incidents[r.vin]) : STAGE_LABEL[r.stage] || r.stage;
     const tone = note ? 'act' : r.stage === 'QUEUED' || r.stage === 'PICKING' ? 'neutral' : 'ok';
     return {
       seq: r.seq,
@@ -251,6 +347,7 @@ export default function App() {
         <div className="header-status">
           <span className="status-item"><i className="dot ok" />Build-order feed · rev {board ? board.rev : '—'}</span>
           <span className="status-item"><i className={`dot ${boardError ? 'crit' : 'ok'}`} />{boardError ? 'Systems unreachable' : '3 systems connected'}</span>
+          {resetError && <span className="status-item"><i className="dot crit" />Reset failed: {resetError}</span>}
           <span className="status-item mono">{profile?.username || profile?.email || ''}</span>
           <button className="btn btn-ghost" onClick={handleLogout}>Sign out</button>
         </div>
@@ -337,6 +434,27 @@ export default function App() {
         </section>
 
         <div className="side">
+          {Object.values(incidents).length > 0 && (
+            <section className="panel pad">
+              <div className="panel-head flush">
+                <h2>Behind the scenes</h2>
+                <span className="mono muted">Who does what</span>
+              </div>
+              {Object.values(incidents).map((inc) => (
+                <div key={inc.vin} className="incident">
+                  <div className="mono muted">Seq {inc.seq} · {inc.vin}</div>
+                  {incidentSteps(inc).map((st, i) => (
+                    <div key={i} className={`step${st.at ? ' done' : ''}${st.warn ? ' warn' : ''}`}>
+                      <span className={`chip ${st.actor === 'Vantiq' ? 'chip-ok' : 'chip-info'}`}>{st.actor}</span>
+                      <span className="step-text">{st.text}</span>
+                      <span className="mono muted step-time">{st.at ? fmtTime(st.at) : 'waiting'}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </section>
+          )}
+
           <section className="panel pad">
             <div className="panel-head flush">
               <h2>Park flow</h2>
@@ -427,13 +545,13 @@ export default function App() {
             <div className="sim-actions">
               <button
                 className={`btn btn-info${flags.reorder ? ' on' : ''}`}
-                onClick={() => fire('reorder', 'BUILD ORDER', 'Plant broadcast rev 118: seq 2046 and 2048 swapped (trim pull-forward).', 'Re-sequenced 2 seat sets, picks reprioritized at SEQ-2 in 1.8 s')}
+                onClick={() => fire('reorder', 'BUILD ORDER', 'Plant broadcast rev 118: seq 2046 and 2048 swapped (trim pull-forward).', 'Vantiq is re-prioritizing Supplier A\'s pick queue')}
               >
                 Build-order change
               </button>
               <button
                 className={`btn btn-act${flags.damage ? ' on' : ''}`}
-                onClick={() => fire('damage', 'QUALITY', 'Vision check at SEQ-3 flagged a torn bolster on the seat set for seq 2044.', 'Reserved replacement from buffer B-14, re-slotted, line-side time held')}
+                onClick={() => fire('damage', 'QUALITY', 'Vision check at SEQ-3 flagged a torn bolster on a seat set.', 'Supplier A holds that seat set. Vantiq is finding and reserving a replacement')}
               >
                 Damaged seat at station
               </button>

@@ -1,0 +1,41 @@
+{
+  "active": true,
+  "agentExtensionConfig": {
+    "https://vantiq.com/agents/discussion": {
+      "creationDisabled": false
+    }
+  },
+  "agentFrameworkVersion": "1.1",
+  "ars_properties": {
+    "filterPrivateAIGenerated": false,
+    "filterPrivateGenerated": false,
+    "filterPublicAIGenerated": false,
+    "filterPublicGenerated": false,
+    "fragmentList": []
+  },
+  "ars_relationships": [],
+  "description": null,
+  "eventTypes": {
+    "UIUpdatePayload": {
+      "description": "Every UI update, for the single UI subscription.",
+      "direction": "OUTBOUND",
+      "eventSchema": null,
+      "isReliable": false
+    },
+    "InboundUIUpdate": {
+      "description": "A UI update from any service; republished to the single UIUpdatePayload subscription.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.UIUpdates.InboundUIUpdate/EventStream",
+      "isReliable": false
+    }
+  },
+  "globalType": null,
+  "interface": [],
+  "internalEventHandlers": [],
+  "isAgent": false,
+  "name": "com.vantiqse.imo.UIUpdates",
+  "partitionedType": null,
+  "replicationFactor": 1,
+  "scheduledProcedures": {}
+}

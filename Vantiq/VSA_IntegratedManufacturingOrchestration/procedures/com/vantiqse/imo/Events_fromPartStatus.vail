@@ -19,6 +19,12 @@ if (e.stage == "QUEUED") {
     t = "PartDelivered"
 } else if (e.stage == "HOLD") {
     t = "PartHeld"
+} else if (e.stage == "REPLACEMENT_PICKED") {
+    t = "ReplacementPicked"
+} else if (e.stage == "HOLD_RELEASED") {
+    t = "HoldReleased"
+} else if (e.stage == "PICK_QUEUE_CONFIRMED") {
+    t = "PickQueueConfirmed"
 }
-var result = {type: t, vin: e.vin, station: e.station, source: "supplier-a/rest", ts: e.ts, detail: {seq: e.seq, stage: e.stage, tugger: e.tugger, needInSec: e.needInSec}}
+var result = {type: t, vin: e.vin, station: e.station, source: "supplier-a/rest", ts: e.ts, detail: {seq: e.seq, stage: e.stage, tugger: e.tugger, needInSec: e.needInSec, bin: e.bin, priority: e.priority, rev: e.rev}}
 return result

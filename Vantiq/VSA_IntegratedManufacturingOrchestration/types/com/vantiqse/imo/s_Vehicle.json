@@ -1,0 +1,16 @@
+{
+  "ars_properties" : null,
+  "ars_relationships" : [ ],
+  "groupBy" : "",
+  "name" : "com.vantiqse.imo.s_Vehicle",
+  "properties" : {
+    "vin" : {
+      "encrypted" : false,
+      "multi" : false,
+      "required" : false,
+      "type" : "String",
+      "unique" : false
+    }
+  },
+  "role" : "schema"
+}

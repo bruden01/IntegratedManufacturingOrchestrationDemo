@@ -16,3 +16,13 @@ CREATE TABLE IF NOT EXISTS seat_inventory (
     reserved   INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL
 );
+
+-- Pick order requested by the plant's build-order changes. Vantiq writes REQUESTED rows; Supplier A confirms them.
+CREATE TABLE IF NOT EXISTS pick_queue (
+    vin        TEXT PRIMARY KEY,
+    seq        INTEGER NOT NULL,
+    priority   INTEGER NOT NULL,       -- 1 = pick first
+    rev        INTEGER NOT NULL,       -- build-order revision that asked for this priority
+    state      TEXT NOT NULL,          -- REQUESTED (by Vantiq), CONFIRMED (by Supplier A)
+    updated_at TEXT NOT NULL
+);

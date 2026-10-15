@@ -1,0 +1,45 @@
+// Enriches a joined PartHeld + QualityFailed pair into a UI update. Looks up the vehicle's seat spec in the plant MES, finds a spare in Supplier A inventory (on_hand - reserved > 0) and reserves it. Returns the UI update payload: kind ReplacementReserved or NoReplacementAvailable.
+package com.vantiqse.imo
+import source com.vantiqse.imo.PlantMESDB
+import source com.vantiqse.imo.SupplierADB
+import service com.vantiqse.imo.Board
+
+STATELESS PROCEDURE Issue.enrichDamagedSeating(event REQUIRED DESCRIPTION "Joined event holding FilterPartHeld and FilterQualityFailed"): Object
+
+var failed = event.FilterQualityFailed
+var vin = failed.vin
+var defect = null
+var seq = null
+if (failed.detail != null) {
+    defect = failed.detail.defect
+    seq = failed.detail.seq
+}
+var safeVin = vin.replace("'", "''")
+
+var orderRows = Board.rowsOf(SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vehicle, seat_spec FROM build_orders WHERE vin = '" + safeVin + "'")
+var vehicle = null
+var seatSpec = null
+if (orderRows.size() > 0) {
+    seq = orderRows[0].seq
+    vehicle = orderRows[0].vehicle
+    seatSpec = orderRows[0].seat_spec
+}
+
+var kind = "NoReplacementAvailable"
+var bin = null
+var summary = "No spare seat available for " + vin
+if (seatSpec != null) {
+    var safeSpec = seatSpec.replace("'", "''")
+    var spareRows = Board.rowsOf(SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin FROM seat_inventory WHERE seat_spec = '" + safeSpec + "' AND on_hand - reserved > 0 ORDER BY bin LIMIT 1")
+    if (spareRows.size() > 0) {
+        bin = spareRows[0].bin
+        PUBLISH {query: "UPDATE seat_inventory SET reserved = reserved + 1, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE bin = '" + bin + "' AND on_hand - reserved > 0"} TO SOURCE SupplierADB
+        kind = "ReplacementReserved"
+        summary = "Spare " + seatSpec + " reserved from bin " + bin + " for " + vin
+    } else {
+        summary = "No spare " + seatSpec + " in stock for " + vin
+    }
+}
+
+var result = {kind: kind, ts: now(), vin: vin, seq: seq, station: failed.station, vehicle: vehicle, defect: defect, seatSpec: seatSpec, bin: bin, summary: summary, failedTs: failed.ts, heldTs: event.FilterPartHeld.ts}
+return result

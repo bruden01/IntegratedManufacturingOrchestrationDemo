@@ -1,0 +1,131 @@
+{
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "0174861a-248f-433a-8d1e-fabccaca9f0b": {
+          "x": 0,
+          "y": 0
+        },
+        "ae3ed220-26c4-4ef4-9925-5dde1aed68be": {
+          "x": 0,
+          "y": 80
+        },
+        "3ce6a58e-71dd-4f4d-b264-e33a3e43f9cf": {
+          "x": 0,
+          "y": 160
+        },
+        "239bf20c-4e7e-43c7-8a98-f00634479d69": {
+          "x": 0,
+          "y": 240
+        }
+      },
+      "lastZoomRequest": 0,
+      "scale": 3.469062805726963,
+      "translate": [
+        446.5,
+        112.7445411861263
+      ]
+    },
+    "groupSettings": {
+      "appGroupOpenHash": {
+        "ServiceProcedures": true,
+        "actions": true,
+        "collab": true,
+        "filters": true,
+        "flowControl": true,
+        "serviceevents": true
+      },
+      "ctGroupOpenHash": {
+        "actions": true,
+        "mobile": true
+      },
+      "ctServiceOpen": false,
+      "serviceGroupOpenHash": {}
+    },
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
+  },
+  "ars_relationships": [],
+  "assembly": {
+    "EstablishCollaboration": {
+      "configuration": {
+        "behavior": "Do not open multiple collaborations for one entity",
+        "collaborationId": null,
+        "collaborationName": null,
+        "entityId": "event.FilterQualityFailed.vin",
+        "entityValue": null,
+        "parentStreams": [
+          "EventStream"
+        ],
+        "roleName": "vehicle",
+        "childStreams": [
+          "Enrich"
+        ]
+      },
+      "downstreamReferences": {},
+      "name": "EstablishCollaboration",
+      "pattern": "EstablishCollaboration",
+      "patternVersion": 11,
+      "uuid": "ae3ed220-26c4-4ef4-9925-5dde1aed68be"
+    },
+    "EventStream": {
+      "configuration": {
+        "childStreams": [
+          "EstablishCollaboration"
+        ],
+        "eventTypeName": "InboundDamagedSeating",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Issue",
+        "parentStreams": []
+      },
+      "downstreamReferences": {},
+      "name": "EventStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "0174861a-248f-433a-8d1e-fabccaca9f0b"
+    },
+    "Enrich": {
+      "configuration": {
+        "childStreams": [
+          "OutboundUIUpdate"
+        ],
+        "parentStreams": [
+          "EstablishCollaboration"
+        ],
+        "transformation": "com.vantiqse.imo.Issue.enrichDamagedSeating"
+      },
+      "downstreamReferences": {},
+      "name": "Enrich",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "uuid": "3ce6a58e-71dd-4f4d-b264-e33a3e43f9cf"
+    },
+    "OutboundUIUpdate": {
+      "configuration": {
+        "eventTypeName": "OutboundUIUpdate",
+        "parentStreams": [
+          "Enrich"
+        ],
+        "service": "com.vantiqse.imo.Issue"
+      },
+      "downstreamReferences": {},
+      "name": "OutboundUIUpdate",
+      "pattern": "PublishToEventType",
+      "patternVersion": 3,
+      "uuid": "239bf20c-4e7e-43c7-8a98-f00634479d69"
+    }
+  },
+  "contextualizedAssembly": {},
+  "description": "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [
+    "collaborations"
+  ],
+  "name": "com.vantiqse.imo.Issue.InboundDamagedSeating",
+  "ars_version": 6
+}

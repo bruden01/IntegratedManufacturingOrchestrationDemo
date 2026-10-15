@@ -1,0 +1,10 @@
+// Resets everything held in Vantiq between demo runs. For now that is every active Issue collaboration; the platform closes them in memory and on disk. Add other resets here as they appear.
+package com.vantiqse.utils
+import service com.vantiqse.imo.Issue
+
+STATELESS PROCEDURE Demo.reset(): Object
+
+Issue.ActiveCollabsCloseAll()
+
+var result = {reset: true, closed: ["com.vantiqse.imo.Issue collaborations"]}
+return result

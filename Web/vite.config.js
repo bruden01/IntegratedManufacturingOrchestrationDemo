@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_VANTIQ_URL,
           changeOrigin: true,
           secure: true,
+          ws: true,
         },
       },
     },

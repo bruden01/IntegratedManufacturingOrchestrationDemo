@@ -1,11 +1,7 @@
 {
-  "active": true,
-  "ars_relationships": [],
-  "isAgent": false,
-  "name": "com.vantiqse.imo.Board",
-  "replicationFactor": 1,
-  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_version": 1,
-  "ars_createdAt": "2026-10-14T19:41:19.717Z",
-  "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
+  "active" : true,
+  "ars_relationships" : [ ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.Board",
+  "replicationFactor" : 1
 }

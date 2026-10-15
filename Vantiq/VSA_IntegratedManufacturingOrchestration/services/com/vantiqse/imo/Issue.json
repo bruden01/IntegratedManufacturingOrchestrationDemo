@@ -1,0 +1,115 @@
+{
+  "active": true,
+  "agentExtensionConfig": {
+    "https://vantiq.com/agents/discussion": {
+      "creationDisabled": false
+    }
+  },
+  "agentFrameworkVersion": "1.1",
+  "ars_properties": {
+    "fragmentList": []
+  },
+  "ars_relationships": [],
+  "collaborationStateConfig": {
+    "entityRoles": [
+      {
+        "name": "vehicle",
+        "type": "com.vantiqse.imo.s_Vehicle"
+      }
+    ],
+    "writeFrequency": "5 minutes"
+  },
+  "description": null,
+  "eventTypes": {
+    "InboundDamagedSeating": {
+      "description": "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundDamagedSeating/EventStream",
+      "isReliable": false
+    },
+    "OutboundUIUpdate": {
+      "description": "A UI update about a damaged seat: the replacement reserved, or none available.",
+      "direction": "OUTBOUND",
+      "eventSchema": null,
+      "isReliable": false
+    },
+    "InboundSeatingProgress": {
+      "description": "Replacement progress from Supplier A: the spare was picked, then the hold was released.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundSeatingProgress/EventStream",
+      "isReliable": false
+    }
+  },
+  "globalType": null,
+  "interface": [
+    {
+      "name": "enrichDamagedSeating",
+      "description": "Looks up the vehicle's seat spec, reserves a spare from Supplier A inventory, and returns a UI update.",
+      "parameters": [
+        {
+          "name": "event",
+          "type": null,
+          "multi": false,
+          "required": true,
+          "default": null,
+          "description": "Joined event holding FilterPartHeld and FilterQualityFailed"
+        }
+      ],
+      "returnType": {
+        "type": "Object",
+        "multi": false
+      },
+      "stateAccess": "stateless"
+    },
+    {
+      "name": "progressUpdate",
+      "description": "Turns a ReplacementPicked or HoldReleased event into a UI update; a released hold completes the collaboration.",
+      "parameters": [
+        {
+          "name": "event",
+          "type": null,
+          "multi": false,
+          "required": true,
+          "default": null,
+          "description": "Normalized ReplacementPicked or HoldReleased event"
+        }
+      ],
+      "returnType": {
+        "type": "Object",
+        "multi": false
+      },
+      "stateAccess": "stateless"
+    },
+    {
+      "name": "completeForVehicle",
+      "description": "Completes the Issue collaboration for a vehicle.",
+      "parameters": [
+        {
+          "name": "vin",
+          "type": "String",
+          "multi": false,
+          "required": true,
+          "default": null,
+          "description": "VIN of the vehicle whose Issue collaboration is finished"
+        }
+      ],
+      "returnType": {
+        "type": "Boolean",
+        "multi": false
+      },
+      "stateAccess": "singlePartition"
+    }
+  ],
+  "internalEventHandlers": [],
+  "isAgent": false,
+  "name": "com.vantiqse.imo.Issue",
+  "partitionedType": "com.vantiqse.imo.Issue.PartitionedState",
+  "replicationFactor": 1,
+  "scheduledProcedures": {
+    "ActiveCollabsWriteAll": {
+      "interval": 300000
+    }
+  }
+}

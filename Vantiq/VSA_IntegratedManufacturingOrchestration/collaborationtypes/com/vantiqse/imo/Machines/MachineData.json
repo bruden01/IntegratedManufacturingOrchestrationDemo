@@ -1,85 +1,77 @@
 {
-  "active": true,
-  "ars_properties": {
-    "dataVersion": 5,
-    "graph": {
-      "coordinates": {
-        "702abe06-454f-4b1d-86bc-96bee3aaccf4": {
-          "x": 0.14541387024608501,
-          "y": 0
+  "active" : true,
+  "ars_properties" : {
+    "dataVersion" : 5,
+    "graph" : {
+      "coordinates" : {
+        "702abe06-454f-4b1d-86bc-96bee3aaccf4" : {
+          "x" : 0.14541387024608501,
+          "y" : 0
         }
       },
-      "lastZoomRequest": 0,
-      "scale": 6.876923076923077,
-      "translate": [
-        526,
-        223.5
-      ]
+      "lastZoomRequest" : 0,
+      "scale" : 6.876923076923077,
+      "translate" : [ 526, 223.5 ]
     },
-    "groupSettings": {
-      "appGroupOpenHash": {
-        "actions": true,
-        "filters": true,
-        "flowControl": true
+    "groupSettings" : {
+      "appGroupOpenHash" : {
+        "actions" : true,
+        "filters" : true,
+        "flowControl" : true
       },
-      "ctGroupOpenHash": {
-        "actions": true,
-        "mobile": true
+      "ctGroupOpenHash" : {
+        "actions" : true,
+        "mobile" : true
       },
-      "ctServiceOpen": false,
-      "serviceGroupOpenHash": {}
+      "ctServiceOpen" : false,
+      "serviceGroupOpenHash" : { }
     },
-    "isHidden": false,
-    "paletteWidth": 170,
-    "propertyWidth": 280
+    "isHidden" : false,
+    "paletteWidth" : 170,
+    "propertyWidth" : 280
   },
-  "ars_relationships": [],
-  "assembly": {
-    "Initiate": {
-      "configuration": {
-        "childStreams": [
-          "Normalize"
-        ],
-        "inboundResource": "sources",
-        "inboundResourceId": "com.vantiqse.imo.SupplierBMachines",
-        "upsert": false
+  "ars_relationships" : [ ],
+  "assembly" : {
+    "Initiate" : {
+      "configuration" : {
+        "childStreams" : [ "Normalize" ],
+        "inboundResource" : "sources",
+        "inboundResourceId" : "com.vantiqse.imo.SupplierBMachines",
+        "parentStreams" : [ ]
       },
-      "downstreamReferences": {},
-      "name": "Initiate",
-      "pattern": "EventStream",
-      "patternVersion": 5,
-      "uuid": "702abe06-454f-4b1d-86bc-96bee3aaccf4"
+      "downstreamReferences" : { },
+      "name" : "Initiate",
+      "pattern" : "EventStream",
+      "patternVersion" : 5,
+      "uuid" : "702abe06-454f-4b1d-86bc-96bee3aaccf4"
     },
-    "Normalize": {
-      "configuration": {
-        "transformation": "com.vantiqse.imo.Events.fromMachine",
-        "childStreams": [
-          "PublishNormalized"
-        ]
+    "Normalize" : {
+      "configuration" : {
+        "childStreams" : [ "PublishNormalized" ],
+        "parentStreams" : [ "Initiate" ],
+        "transformation" : "com.vantiqse.imo.Events.fromMachine"
       },
-      "name": "Normalize",
-      "pattern": "Transformation",
-      "patternVersion": 5,
-      "description": "Maps the OPC UA node change to the normalized event shape."
+      "description" : "Maps the OPC UA node change to the normalized event shape.",
+      "name" : "Normalize",
+      "pattern" : "Transformation",
+      "patternVersion" : 5
     },
-    "PublishNormalized": {
-      "configuration": {
-        "service": "com.vantiqse.imo.Events",
-        "eventTypeName": "NormalizedEvent"
+    "PublishNormalized" : {
+      "configuration" : {
+        "eventTypeName" : "NormalizedEvent",
+        "parentStreams" : [ "Normalize" ],
+        "service" : "com.vantiqse.imo.Events"
       },
-      "name": "PublishNormalized",
-      "pattern": "PublishToService",
-      "patternVersion": 5,
-      "description": "Publishes the normalized event to the Events service."
+      "description" : "Publishes the normalized event to the Events service.",
+      "name" : "PublishNormalized",
+      "pattern" : "PublishToService",
+      "patternVersion" : 3
     }
   },
-  "contextualizedAssembly": {},
-  "disableBadging": false,
-  "isComponent": false,
-  "isEventHandler": true,
-  "keyTypes": [
-    "collaborations"
-  ],
-  "name": "com.vantiqse.imo.Machines.MachineData",
-  "ars_version": 4
+  "contextualizedAssembly" : { },
+  "disableBadging" : false,
+  "isComponent" : false,
+  "isEventHandler" : true,
+  "keyTypes" : [ "collaborations" ],
+  "name" : "com.vantiqse.imo.Machines.MachineData"
 }

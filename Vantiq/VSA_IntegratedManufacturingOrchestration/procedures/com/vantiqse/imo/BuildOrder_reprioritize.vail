@@ -1,0 +1,38 @@
+// Handles a revised plant build order. Reads the new order from the plant MES, ranks the vehicles by line-side need, and writes the moved vehicles' new pick priority into Supplier A's pick_queue as REQUESTED. Supplier A re-orders its picking and confirms. Returns the UI update payload (kind BuildOrderChanged).
+package com.vantiqse.imo
+import source com.vantiqse.imo.PlantMESDB
+import source com.vantiqse.imo.SupplierADB
+import service com.vantiqse.imo.Board
+
+STATELESS PROCEDURE BuildOrder.reprioritize(event REQUIRED DESCRIPTION "Normalized BuildOrderRevised event from the plant MES"): Object
+
+var rev = event.detail.rev
+var changes = event.detail.changes
+var orderRows = Board.rowsOf(SELECT ONE FROM SOURCE PlantMESDB WITH query = "SELECT seq, vin FROM build_orders ORDER BY need_in_sec")
+
+var moved = []
+var parts = []
+if (changes != null) {
+    for (c in changes) {
+        var priority = null
+        var vin = null
+        var i = 0
+        for (row in orderRows) {
+            i = i + 1
+            if (row.seq == c.seq) {
+                priority = i
+                vin = row.vin
+            }
+        }
+        if (vin != null) {
+            var safeVin = vin.replace("'", "''")
+            PUBLISH {query: "INSERT INTO pick_queue (vin, seq, priority, rev, state, updated_at) VALUES ('" + safeVin + "', " + c.seq + ", " + priority + ", " + rev + ", 'REQUESTED', strftime('%Y-%m-%dT%H:%M:%fZ','now')) ON CONFLICT(vin) DO UPDATE SET seq = excluded.seq, priority = excluded.priority, rev = excluded.rev, state = 'REQUESTED', updated_at = excluded.updated_at"} TO SOURCE SupplierADB
+            moved.push({seq: c.seq, vin: vin, priority: priority, note: c.note})
+            parts.push("seq " + c.seq + " " + c.note + " to pick " + priority)
+        }
+    }
+}
+
+var summary = "Vantiq re-prioritized Supplier A's pick queue: " + parts.join(", ")
+var result = {kind: "BuildOrderChanged", ts: now(), rev: rev, moved: moved, summary: summary}
+return result

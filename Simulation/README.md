@@ -19,7 +19,7 @@ Options: `--speed 10` (sim seconds per real second), `--dry-run` (print instead 
 | Call | Effect |
 |---|---|
 | `POST /scenario/reorder` | Build-order rev 117 → 118, two positions swapped |
-| `POST /scenario/damage` | Vision check fails on the seat set at position 4 (torn bolster) |
+| `POST /scenario/damage` | Vision check fails on the seat set at position 4 (torn bolster). The `Quality` failure is posted at once; the supplier's system holds the seat set 3 real seconds later (`--hold-delay`), which updates `supplier_a.db` and posts `PartStatus HOLD`. A reset inside that window cancels the hold. The simulator also plays the warehouse picker: once Vantiq has reserved a spare for that seat spec (`reserved` goes up in `seat_inventory`), the picker takes it from the bin `--pick-delay` (4) seconds later (`PartStatus REPLACEMENT_PICKED`), and 3 seconds after that the supplier releases the hold (`PartStatus HOLD_RELEASED`) |
 | `POST /scenario/tugger` | Tugger T3 faults (E-41) carrying the two soonest seat sets |
 | `POST /scenario/charger` | Charging station CHG-2 faults (E-17); OPC UA feed only |
 | `POST /scenario/conveyor` | Dock conveyor CONV-1 jams (J-03); OPC UA feed only |

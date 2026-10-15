@@ -1,0 +1,343 @@
+{
+  "active": true,
+  "ars_properties": {
+    "dataVersion": 5,
+    "graph": {
+      "coordinates": {
+        "0621ef79-324a-4317-a06d-df51dd8b5906": {
+          "x": 76.33984375,
+          "y": 400
+        },
+        "0681e2f6-d105-4e2d-bf34-7c55b01ab537": {
+          "x": 192.234375,
+          "y": 160
+        },
+        "0c1e8289-bc1e-4894-bf37-258346715e57": {
+          "x": -39.5546875,
+          "y": 80
+        },
+        "2986058e-550c-479e-8816-8896922c050d": {
+          "x": -39.5546875,
+          "y": 160
+        },
+        "5a1c9e72-3b04-4f1d-8e26-7d0b2c4a9f11": {
+          "x": 0,
+          "y": 0
+        },
+        "74fd1a25-df45-443d-80e0-29a84649a6ff": {
+          "x": 192.234375,
+          "y": 80
+        },
+        "8e3d4b61-9c25-4a7e-b0f3-1a6c5d8e2b22": {
+          "x": 192.234375,
+          "y": 0
+        },
+        "b5d96763-2d9d-4f57-9a43-37e79e34992d": {
+          "x": 76.33984375,
+          "y": 320
+        },
+        "3c7e5a91-6d2b-4f08-a1c4-9e0b7d2f5a31": {
+          "x": -39.5546875,
+          "y": 240
+        },
+        "d41f8b62-0e93-4c75-b8a6-2f1c9e4d7b52": {
+          "x": 192.234375,
+          "y": 240
+        },
+        "d8d3895b-03fb-46e4-9e77-91789c3da6d6": {
+          "x": 300,
+          "y": 360
+        },
+        "3341be9c-e061-4280-83c7-4d5668bef529": {
+          "x": 300,
+          "y": 440
+        },
+        "7cfe3573-4bf7-415b-82fa-d0f1db52eaa9": {
+          "x": 0,
+          "y": 520
+        },
+        "e134ee37-b57e-4c7f-a885-9a12d1ff9fb7": {
+          "x": 0,
+          "y": 600
+        }
+      },
+      "lastZoomRequest": 0,
+      "scale": 1.3063894358938184,
+      "translate": [
+        354.54498265590365,
+        42.4576566665491
+      ]
+    },
+    "groupSettings": {
+      "appGroupOpenHash": {
+        "actions": true,
+        "filters": true,
+        "flowControl": true,
+        "serviceevents": true
+      },
+      "ctGroupOpenHash": {
+        "actions": true,
+        "mobile": true
+      },
+      "ctServiceOpen": false,
+      "serviceGroupOpenHash": {}
+    },
+    "isHidden": false,
+    "paletteWidth": 170,
+    "propertyWidth": 280
+  },
+  "ars_relationships": [],
+  "assembly": {
+    "Join": {
+      "configuration": {
+        "childStreams": [
+          "OutboundDamagedSeating"
+        ],
+        "constraints": [
+          {
+            "type": "VAIL Expression",
+            "value": "FilterPartHeld.vin == FilterQualityFailed.vin"
+          }
+        ],
+        "imports": null,
+        "joinOrder": null,
+        "order": "either",
+        "outboundResource": null,
+        "outboundResourceConfig": null,
+        "outboundResourceId": null,
+        "parentStreams": [
+          "FilterPartHeld",
+          "FilterQualityFailed"
+        ],
+        "upsert": false,
+        "withinDuration": "10 seconds"
+      },
+      "downstreamReferences": {},
+      "name": "Join",
+      "pattern": "Join",
+      "patternVersion": 5,
+      "uuid": "b5d96763-2d9d-4f57-9a43-37e79e34992d"
+    },
+    "NormalizePartStatus": {
+      "configuration": {
+        "childStreams": [
+          "PublishPartStatus"
+        ],
+        "parentStreams": [
+          "PartStatusStream"
+        ],
+        "transformation": "com.vantiqse.imo.Events.fromPartStatus"
+      },
+      "description": "Maps the seating PartStatus event to the normalized event shape.",
+      "downstreamReferences": {},
+      "name": "NormalizePartStatus",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "uuid": "0c1e8289-bc1e-4894-bf37-258346715e57"
+    },
+    "NormalizeQuality": {
+      "configuration": {
+        "childStreams": [
+          "PublishQuality"
+        ],
+        "parentStreams": [
+          "QualityStream"
+        ],
+        "transformation": "com.vantiqse.imo.Events.fromQuality"
+      },
+      "description": "Maps the seating Quality event to the normalized event shape.",
+      "downstreamReferences": {},
+      "name": "NormalizeQuality",
+      "pattern": "Transformation",
+      "patternVersion": 5,
+      "uuid": "74fd1a25-df45-443d-80e0-29a84649a6ff"
+    },
+    "OutboundDamagedSeating": {
+      "configuration": {
+        "eventTypeName": "OutboundDamagedSeating",
+        "parentStreams": [
+          "Join"
+        ],
+        "service": "com.vantiqse.imo.Seating"
+      },
+      "downstreamReferences": {},
+      "name": "OutboundDamagedSeating",
+      "pattern": "PublishToEventType",
+      "patternVersion": 3,
+      "uuid": "0621ef79-324a-4317-a06d-df51dd8b5906"
+    },
+    "PartStatusStream": {
+      "configuration": {
+        "childStreams": [
+          "NormalizePartStatus"
+        ],
+        "eventTypeName": "PartStatus",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Seating",
+        "parentStreams": []
+      },
+      "downstreamReferences": {},
+      "name": "PartStatusStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "5a1c9e72-3b04-4f1d-8e26-7d0b2c4a9f11"
+    },
+    "PublishPartStatus": {
+      "configuration": {
+        "childStreams": [
+          "FilterPartHeld",
+          "FilterProgress",
+          "FilterPickQueue"
+        ],
+        "eventTypeName": "NormalizedEvent",
+        "parentStreams": [
+          "NormalizePartStatus"
+        ],
+        "service": "com.vantiqse.imo.Events"
+      },
+      "description": "Publishes the normalized event to the Events service.",
+      "downstreamReferences": {},
+      "name": "PublishPartStatus",
+      "pattern": "PublishToService",
+      "patternVersion": 3,
+      "uuid": "2986058e-550c-479e-8816-8896922c050d"
+    },
+    "PublishQuality": {
+      "configuration": {
+        "childStreams": [
+          "FilterQualityFailed"
+        ],
+        "eventTypeName": "NormalizedEvent",
+        "parentStreams": [
+          "NormalizeQuality"
+        ],
+        "service": "com.vantiqse.imo.Events"
+      },
+      "description": "Publishes the normalized event to the Events service.",
+      "downstreamReferences": {},
+      "name": "PublishQuality",
+      "pattern": "PublishToService",
+      "patternVersion": 3,
+      "uuid": "0681e2f6-d105-4e2d-bf34-7c55b01ab537"
+    },
+    "QualityStream": {
+      "configuration": {
+        "childStreams": [
+          "NormalizeQuality"
+        ],
+        "eventTypeName": "Quality",
+        "inboundResource": "services",
+        "inboundResourceId": "com.vantiqse.imo.Seating",
+        "parentStreams": []
+      },
+      "downstreamReferences": {},
+      "name": "QualityStream",
+      "pattern": "EventStream",
+      "patternVersion": 5,
+      "uuid": "8e3d4b61-9c25-4a7e-b0f3-1a6c5d8e2b22"
+    },
+    "FilterPartHeld": {
+      "name": "FilterPartHeld",
+      "pattern": "Filter",
+      "configuration": {
+        "condition": "event.type == \"PartHeld\"",
+        "childStreams": [
+          "Join"
+        ],
+        "parentStreams": [
+          "PublishPartStatus"
+        ]
+      },
+      "uuid": "3c7e5a91-6d2b-4f08-a1c4-9e0b7d2f5a31",
+      "description": "Only a hold on the seat set can confirm a damaged seat.",
+      "downstreamReferences": {},
+      "patternVersion": 5
+    },
+    "FilterQualityFailed": {
+      "name": "FilterQualityFailed",
+      "pattern": "Filter",
+      "configuration": {
+        "condition": "event.type == \"QualityFailed\"",
+        "childStreams": [
+          "Join"
+        ],
+        "parentStreams": [
+          "PublishQuality"
+        ]
+      },
+      "uuid": "d41f8b62-0e93-4c75-b8a6-2f1c9e4d7b52",
+      "description": "Only a failed quality scan can start a damaged-seat issue.",
+      "downstreamReferences": {},
+      "patternVersion": 5
+    },
+    "FilterProgress": {
+      "configuration": {
+        "condition": "event.type == \"ReplacementPicked\" || event.type == \"HoldReleased\"",
+        "childStreams": [
+          "OutboundSeatingProgress"
+        ],
+        "parentStreams": [
+          "PublishPartStatus"
+        ]
+      },
+      "downstreamReferences": {},
+      "name": "FilterProgress",
+      "pattern": "Filter",
+      "patternVersion": 5,
+      "uuid": "d8d3895b-03fb-46e4-9e77-91789c3da6d6"
+    },
+    "OutboundSeatingProgress": {
+      "configuration": {
+        "eventTypeName": "OutboundSeatingProgress",
+        "parentStreams": [
+          "FilterProgress"
+        ],
+        "service": "com.vantiqse.imo.Seating"
+      },
+      "downstreamReferences": {},
+      "name": "OutboundSeatingProgress",
+      "pattern": "PublishToEventType",
+      "patternVersion": 3,
+      "uuid": "3341be9c-e061-4280-83c7-4d5668bef529"
+    },
+    "FilterPickQueue": {
+      "configuration": {
+        "condition": "event.type == \"PickQueueConfirmed\"",
+        "childStreams": [
+          "OutboundPickQueueConfirmed"
+        ],
+        "parentStreams": [
+          "PublishPartStatus"
+        ]
+      },
+      "downstreamReferences": {},
+      "name": "FilterPickQueue",
+      "pattern": "Filter",
+      "patternVersion": 5,
+      "uuid": "7cfe3573-4bf7-415b-82fa-d0f1db52eaa9"
+    },
+    "OutboundPickQueueConfirmed": {
+      "configuration": {
+        "eventTypeName": "OutboundPickQueueConfirmed",
+        "parentStreams": [
+          "FilterPickQueue"
+        ],
+        "service": "com.vantiqse.imo.Seating"
+      },
+      "downstreamReferences": {},
+      "name": "OutboundPickQueueConfirmed",
+      "pattern": "PublishToEventType",
+      "patternVersion": 3,
+      "uuid": "e134ee37-b57e-4c7f-a885-9a12d1ff9fb7"
+    }
+  },
+  "contextualizedAssembly": {},
+  "disableBadging": false,
+  "isComponent": false,
+  "isEventHandler": true,
+  "keyTypes": [
+    "collaborations"
+  ],
+  "name": "com.vantiqse.imo.Seating.SeatingData",
+  "ars_version": 8
+}

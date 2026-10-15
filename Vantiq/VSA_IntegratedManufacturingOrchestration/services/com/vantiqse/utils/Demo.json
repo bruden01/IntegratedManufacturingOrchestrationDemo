@@ -1,0 +1,25 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "ars_relationships" : [],
+  "interface" : [
+    {
+      "name" : "reset",
+      "description" : "Resets everything held in Vantiq between demo runs. For now that is every active Issue collaboration.",
+      "parameters" : [],
+      "returnType" : {
+        "type" : "Object",
+        "multi" : false
+      }
+    }
+  ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.utils.Demo",
+  "replicationFactor" : 1,
+  "ars_namespace" : "VSA_IntegratedManufacturingOrchestration",
+  "ars_version" : 2
+}

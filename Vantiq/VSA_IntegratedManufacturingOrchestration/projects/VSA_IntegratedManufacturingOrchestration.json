@@ -1,17 +1,71 @@
 {
   "ars_relationships" : [ ],
   "links" : [ {
+    "source" : "app/com.vantiqse.imo.Events.NormalizedEvent",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId"
+  }, {
+    "source" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity"
+  }, {
+    "source" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "app/com.vantiqse.imo.Machines.MachineData",
+    "target" : "procedure/com.vantiqse.imo.Events.fromMachine"
+  }, {
+    "source" : "app/com.vantiqse.imo.Machines.MachineData",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
     "source" : "app/com.vantiqse.imo.Machines.MachineData",
     "target" : "services/com.vantiqse.imo.Machines"
   }, {
     "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
+    "target" : "procedure/com.vantiqse.imo.Events.fromBuildOrder"
+  }, {
+    "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "app/com.vantiqse.imo.PlantMES.PlantMESData",
     "target" : "services/com.vantiqse.imo.PlantMES"
+  }, {
+    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
+    "target" : "procedure/com.vantiqse.imo.Events.fromPartStatus"
+  }, {
+    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
+    "target" : "procedure/com.vantiqse.imo.Events.fromQuality"
+  }, {
+    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "app/com.vantiqse.imo.Seating.SeatingData",
+    "target" : "services/com.vantiqse.imo.Seating"
+  }, {
+    "source" : "app/com.vantiqse.imo.Tugger.Fault",
+    "target" : "procedure/com.vantiqse.imo.Events.fromFault"
+  }, {
+    "source" : "app/com.vantiqse.imo.Tugger.Fault",
+    "target" : "services/com.vantiqse.imo.Events"
   }, {
     "source" : "app/com.vantiqse.imo.Tugger.Fault",
     "target" : "services/com.vantiqse.imo.Tugger"
   }, {
     "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
+    "target" : "procedure/com.vantiqse.imo.Events.fromTelemetry"
+  }, {
+    "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "app/com.vantiqse.imo.Tugger.Telemetry",
     "target" : "services/com.vantiqse.imo.Tugger"
+  }, {
+    "source" : "designmodel/com.vantiqse.imo.Design",
+    "target" : "services/com.vantiqse.imo.Issue"
   }, {
     "source" : "designmodel/com.vantiqse.imo.Design",
     "target" : "services/com.vantiqse.imo.Machines"
@@ -20,19 +74,322 @@
     "target" : "services/com.vantiqse.imo.PlantMES"
   }, {
     "source" : "designmodel/com.vantiqse.imo.Design",
-    "target" : "services/com.vantiqse.imo.Seating"
+    "target" : "services/com.vantiqse.imo.Tugger"
   }, {
     "source" : "designmodel/com.vantiqse.imo.Design",
-    "target" : "services/com.vantiqse.imo.Tugger"
+    "target" : "services/com.vantiqse.imo.UIUpdates"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Board.getSequenceBoard",
+    "target" : "procedure/com.vantiqse.imo.Board.rowsOf"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Board.getSequenceBoard",
+    "target" : "services/com.vantiqse.imo.Board"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Board.getSequenceBoard",
+    "target" : "source/com.vantiqse.imo.PlantMESDB"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Board.getSequenceBoard",
+    "target" : "source/com.vantiqse.imo.SupplierADB"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Board.getSequenceBoard",
+    "target" : "source/com.vantiqse.imo.SupplierBDB"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Board.rowsOf",
+    "target" : "services/com.vantiqse.imo.Board"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromBuildOrder",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromBuildOrder",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromFault",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromFault",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromMachine",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromMachine",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromPartStatus",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromPartStatus",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromQuality",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromQuality",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromTelemetry",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.fromTelemetry",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Events.unwrap",
+    "target" : "services/com.vantiqse.imo.Events"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsMarkAsClosing"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnClose"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsWriteAll"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGenerateId",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetActive",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetCached"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetActive",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetAll",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnLoad"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetCached",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetConversation",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetConversation",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGenerateId"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetEntity"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsMarkAsClosing",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnClose",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnLoad",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnStore",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsReset",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetConversation",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetConversation",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetEntity",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetResult",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetResult",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsStartConversation",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsStartConversation",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsStartConversation",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnClose"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnStore"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsWriteAll",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsWriteAll",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnStore"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsWriteAll",
+    "target" : "services/com.vantiqse.imo.Issue"
+  }, {
+    "source" : "procedure/com.vantiqse.imo.Issue.CollabIdsByEntityStoreId",
+    "target" : "services/com.vantiqse.imo.Issue"
   }, {
     "source" : "rule/com.vantiqse.imo.Tugger.OnTuggerMsg",
     "target" : "services/com.vantiqse.imo.Tugger"
+  }, {
+    "source" : "services/com.vantiqse.imo.Board",
+    "target" : "procedure/com.vantiqse.imo.Board.getSequenceBoard"
+  }, {
+    "source" : "services/com.vantiqse.imo.Board",
+    "target" : "procedure/com.vantiqse.imo.Board.rowsOf"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "app/com.vantiqse.imo.Events.NormalizedEvent"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.fromBuildOrder"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.fromFault"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.fromMachine"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.fromPartStatus"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.fromQuality"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.fromTelemetry"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "procedure/com.vantiqse.imo.Events.unwrap"
+  }, {
+    "source" : "services/com.vantiqse.imo.Events",
+    "target" : "type/com.vantiqse.imo.NormalizedEvent"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "app/com.vantiqse.imo.Issue.InboundDamagedSeating"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "document/com.vantiqse.imo.Issue.js"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsCloseAll"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGenerateId"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetActive"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetAll"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetById"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetCached"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetConversation"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsMarkAsClosing"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnClose"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnLoad"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsOnStore"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsReset"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetConversation"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetEntity"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsSetResult"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsStartConversation"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.ActiveCollabsWriteAll"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "procedure/com.vantiqse.imo.Issue.CollabIdsByEntityStoreId"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "type/com.vantiqse.imo.Issue.PartitionedState"
+  }, {
+    "source" : "services/com.vantiqse.imo.Issue",
+    "target" : "type/com.vantiqse.imo.s_Vehicle"
   }, {
     "source" : "services/com.vantiqse.imo.Machines",
     "target" : "document/com.vantiqse.imo.Machines.js"
   }, {
     "source" : "services/com.vantiqse.imo.PlantMES",
     "target" : "document/com.vantiqse.imo.PlantMES.js"
+  }, {
+    "source" : "services/com.vantiqse.imo.Seating",
+    "target" : "app/com.vantiqse.imo.Seating.SeatingData"
+  }, {
+    "source" : "services/com.vantiqse.imo.Seating",
+    "target" : "document/com.vantiqse.imo.Seating.js"
   }, {
     "source" : "services/com.vantiqse.imo.Tugger",
     "target" : "app/com.vantiqse.imo.Tugger.Fault"
@@ -43,8 +400,23 @@
     "source" : "services/com.vantiqse.imo.Tugger",
     "target" : "document/com.vantiqse.imo.Tugger.js"
   }, {
+    "source" : "services/com.vantiqse.imo.UIUpdates",
+    "target" : "document/com.vantiqse.imo.UIUpdates.js"
+  }, {
+    "source" : "services/com.vantiqse.utils.Demo",
+    "target" : "document/com.vantiqse.utils.Demo.js"
+  }, {
     "source" : "source/com.vantiqse.imo.PlantMES",
     "target" : "app/com.vantiqse.imo.PlantMES.PlantMESData"
+  }, {
+    "source" : "source/com.vantiqse.imo.PlantMESDB",
+    "target" : "sourceimpl/JDBC"
+  }, {
+    "source" : "source/com.vantiqse.imo.SupplierADB",
+    "target" : "sourceimpl/JDBC"
+  }, {
+    "source" : "source/com.vantiqse.imo.SupplierBDB",
+    "target" : "sourceimpl/JDBC"
   }, {
     "source" : "source/com.vantiqse.imo.SupplierBMachines",
     "target" : "app/com.vantiqse.imo.Machines.MachineData"
@@ -68,9 +440,9 @@
       "viewtabs" : false
     },
     "dockDimensions" : {
-      "bottom" : 394,
+      "bottom" : 334,
       "debug" : [ 862.5, 862.5 ],
-      "left" : 210,
+      "left" : 369,
       "right" : 220,
       "top" : 0,
       "via" : 450,
@@ -85,7 +457,7 @@
     "showGrid" : true,
     "structure" : {
       "fraction" : 1,
-      "type" : "R[4]"
+      "type" : "R[8]"
     },
     "type" : "dev",
     "v" : 6,
@@ -93,14 +465,300 @@
   },
   "partitions" : [ ],
   "resources" : [ {
+    "label" : "JDBC",
+    "name" : "JDBC",
+    "resourceReference" : "/sourceimpls/JDBC",
+    "type" : 69
+  }, {
     "label" : "OPCUA",
     "name" : "OPCUA",
     "resourceReference" : "/sourceimpls/OPCUA",
     "type" : 69
   }, {
+    "label" : "com.vantiqse.imo.Board",
+    "name" : "com.vantiqse.imo.Board",
+    "resourceReference" : "/services/com.vantiqse.imo.Board",
+    "type" : 63
+  }, {
+    "label" : "com.vantiqse.imo.Board.getSequenceBoard",
+    "name" : "com.vantiqse.imo.Board.getSequenceBoard",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "getSequenceBoard",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Board.getSequenceBoard",
+    "serviceName" : "Board",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Board.rowsOf",
+    "name" : "com.vantiqse.imo.Board.rowsOf",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "rowsOf",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Board.rowsOf",
+    "serviceName" : "Board",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Design",
     "name" : "com.vantiqse.imo.Design",
     "resourceReference" : "/system.designmodels/com.vantiqse.imo.Design",
     "type" : 75
+  }, {
+    "label" : "com.vantiqse.imo.Events",
+    "name" : "com.vantiqse.imo.Events",
+    "resourceReference" : "/services/com.vantiqse.imo.Events",
+    "type" : 63
+  }, {
+    "label" : "com.vantiqse.imo.Events.NormalizedEvent",
+    "name" : "com.vantiqse.imo.Events.NormalizedEvent",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Events.NormalizedEvent",
+    "type" : 12
+  }, {
+    "label" : "com.vantiqse.imo.Events.fromBuildOrder",
+    "name" : "com.vantiqse.imo.Events.fromBuildOrder",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "fromBuildOrder",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromBuildOrder",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Events.fromFault",
+    "name" : "com.vantiqse.imo.Events.fromFault",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "fromFault",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromFault",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Events.fromMachine",
+    "name" : "com.vantiqse.imo.Events.fromMachine",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "fromMachine",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromMachine",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Events.fromPartStatus",
+    "name" : "com.vantiqse.imo.Events.fromPartStatus",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "fromPartStatus",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromPartStatus",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Events.fromQuality",
+    "name" : "com.vantiqse.imo.Events.fromQuality",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "fromQuality",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromQuality",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Events.fromTelemetry",
+    "name" : "com.vantiqse.imo.Events.fromTelemetry",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "fromTelemetry",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.fromTelemetry",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "label" : "com.vantiqse.imo.Events.unwrap",
+    "name" : "com.vantiqse.imo.Events.unwrap",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "unwrap",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Events.unwrap",
+    "serviceName" : "Events",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.Issue",
+    "resourceReference" : "/services/com.vantiqse.imo.Issue",
+    "type" : 63
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsCloseAll",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsCloseAll",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGenerateId",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGenerateId",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGenerateId",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetActive",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetActive",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetActive",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetAll",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetAll",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetAll",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetByEntityId",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetByEntityId",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetById",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetById",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetById",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetCached",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetCached",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetCached",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetConversation",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetConversation",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetConversation",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetOrCreate",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreate",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsGetOrCreateForEntity",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsGetOrCreateForEntity",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsMarkAsClosing",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsMarkAsClosing",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsMarkAsClosing",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsOnClose",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsOnClose",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsOnClose",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsOnLoad",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsOnLoad",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsOnLoad",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsOnStore",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsOnStore",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsOnStore",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsReset",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsReset",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsReset",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsSetConversation",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsSetConversation",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsSetConversation",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsSetEntity",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsSetEntity",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsSetEntity",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsSetResult",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsSetResult",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsSetResult",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsStartConversation",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsStartConversation",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsStartConversation",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsUpdateStatus",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsUpdateStatus",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.ActiveCollabsWriteAll",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "ActiveCollabsWriteAll",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.ActiveCollabsWriteAll",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.CollabIdsByEntityStoreId",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "CollabIdsByEntityStoreId",
+    "resourceReference" : "/procedures/com.vantiqse.imo.Issue.CollabIdsByEntityStoreId",
+    "serviceName" : "Issue",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.Issue.InboundDamagedSeating",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Issue.InboundDamagedSeating",
+    "type" : 12
+  }, {
+    "name" : "com.vantiqse.imo.Issue.PartitionedState",
+    "resourceReference" : "/types/com.vantiqse.imo.Issue.PartitionedState",
+    "type" : 1
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.imo.Issue.js",
+    "resourceReference" : "/documents/com.vantiqse.imo.Issue.js",
+    "type" : 19
   }, {
     "label" : "com.vantiqse.imo.Machines",
     "name" : "com.vantiqse.imo.Machines",
@@ -118,6 +776,11 @@
     "resourceReference" : "/documents/com.vantiqse.imo.Machines.js",
     "type" : 19
   }, {
+    "label" : "com.vantiqse.imo.NormalizedEvent",
+    "name" : "com.vantiqse.imo.NormalizedEvent",
+    "resourceReference" : "/types/com.vantiqse.imo.NormalizedEvent",
+    "type" : 1
+  }, {
     "label" : "com.vantiqse.imo.PlantMES",
     "name" : "com.vantiqse.imo.PlantMES",
     "resourceReference" : "/sources/com.vantiqse.imo.PlantMES",
@@ -128,6 +791,7 @@
     "resourceReference" : "/services/com.vantiqse.imo.PlantMES",
     "type" : 63
   }, {
+    "label" : "com.vantiqse.imo.PlantMES.PlantMESData",
     "name" : "com.vantiqse.imo.PlantMES.PlantMESData",
     "resourceReference" : "/collaborationtypes/com.vantiqse.imo.PlantMES.PlantMESData",
     "type" : 12
@@ -138,9 +802,36 @@
     "resourceReference" : "/documents/com.vantiqse.imo.PlantMES.js",
     "type" : 19
   }, {
+    "label" : "com.vantiqse.imo.PlantMESDB",
+    "name" : "com.vantiqse.imo.PlantMESDB",
+    "resourceReference" : "/sources/com.vantiqse.imo.PlantMESDB",
+    "type" : 4
+  }, {
+    "label" : "com.vantiqse.imo.Seating",
     "name" : "com.vantiqse.imo.Seating",
     "resourceReference" : "/services/com.vantiqse.imo.Seating",
     "type" : 63
+  }, {
+    "label" : "com.vantiqse.imo.Seating.SeatingData",
+    "name" : "com.vantiqse.imo.Seating.SeatingData",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.Seating.SeatingData",
+    "type" : 12
+  }, {
+    "isGenerated" : true,
+    "label" : "com.vantiqse.imo.Seating.js",
+    "name" : "com.vantiqse.imo.Seating.js",
+    "resourceReference" : "/documents/com.vantiqse.imo.Seating.js",
+    "type" : 19
+  }, {
+    "label" : "com.vantiqse.imo.SupplierADB",
+    "name" : "com.vantiqse.imo.SupplierADB",
+    "resourceReference" : "/sources/com.vantiqse.imo.SupplierADB",
+    "type" : 4
+  }, {
+    "label" : "com.vantiqse.imo.SupplierBDB",
+    "name" : "com.vantiqse.imo.SupplierBDB",
+    "resourceReference" : "/sources/com.vantiqse.imo.SupplierBDB",
+    "type" : 4
   }, {
     "label" : "com.vantiqse.imo.SupplierBMachines",
     "name" : "com.vantiqse.imo.SupplierBMachines",
@@ -177,8 +868,66 @@
     "name" : "com.vantiqse.imo.Tugger.js",
     "resourceReference" : "/documents/com.vantiqse.imo.Tugger.js",
     "type" : 19
+  }, {
+    "label" : "com.vantiqse.imo.UIUpdates",
+    "name" : "com.vantiqse.imo.UIUpdates",
+    "resourceReference" : "/services/com.vantiqse.imo.UIUpdates",
+    "type" : 63
+  }, {
+    "isGenerated" : true,
+    "label" : "com.vantiqse.imo.UIUpdates.js",
+    "name" : "com.vantiqse.imo.UIUpdates.js",
+    "resourceReference" : "/documents/com.vantiqse.imo.UIUpdates.js",
+    "type" : 19
+  }, {
+    "name" : "com.vantiqse.imo.s_Vehicle",
+    "resourceReference" : "/types/com.vantiqse.imo.s_Vehicle",
+    "type" : 1
+  }, {
+    "name" : "com.vantiqse.utils.Demo",
+    "resourceReference" : "/services/com.vantiqse.utils.Demo",
+    "type" : 63
+  }, {
+    "isGenerated" : true,
+    "name" : "com.vantiqse.utils.Demo.js",
+    "resourceReference" : "/documents/com.vantiqse.utils.Demo.js",
+    "type" : 19
+  }, {
+    "name" : "com.vantiqse.imo.BuildOrder",
+    "resourceReference" : "/services/com.vantiqse.imo.BuildOrder",
+    "type" : 63
+  }, {
+    "name" : "com.vantiqse.imo.BuildOrder.reprioritize",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "reprioritize",
+    "resourceReference" : "/procedures/com.vantiqse.imo.BuildOrder.reprioritize",
+    "serviceName" : "BuildOrder",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.BuildOrder.confirmed",
+    "packageName" : "com.vantiqse.imo",
+    "procedureName" : "confirmed",
+    "resourceReference" : "/procedures/com.vantiqse.imo.BuildOrder.confirmed",
+    "serviceName" : "BuildOrder",
+    "type" : 3
+  }, {
+    "name" : "com.vantiqse.imo.BuildOrder.InboundBuildOrderChange",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.BuildOrder.InboundBuildOrderChange",
+    "type" : 12
+  }, {
+    "name" : "com.vantiqse.imo.BuildOrder.InboundPickQueueConfirmed",
+    "resourceReference" : "/collaborationtypes/com.vantiqse.imo.BuildOrder.InboundPickQueueConfirmed",
+    "type" : 12
   } ],
   "tools" : [ {
+    "isPinned" : false,
+    "name" : "Collaborations",
+    "pane" : {
+      "address" : "R[6]"
+    },
+    "state" : 8,
+    "type" : 20
+  }, {
     "isPinned" : false,
     "name" : "Errors",
     "type" : 13
@@ -197,46 +946,73 @@
     "type" : 2
   }, {
     "isPinned" : false,
+    "name" : "com.vantiqse.imo.Board",
+    "pane" : {
+      "address" : "R[0]"
+    },
+    "resourceKey" : "services/com.vantiqse.imo.Board",
+    "state" : 8,
+    "type" : 109
+  }, {
+    "isPinned" : false,
+    "name" : "com.vantiqse.imo.Board.rowsOf",
+    "pane" : {
+      "address" : "R[7]"
+    },
+    "resourceKey" : "procedure/com.vantiqse.imo.Board.rowsOf",
+    "state" : 8,
+    "type" : 24
+  }, {
+    "isPinned" : false,
     "name" : "com.vantiqse.imo.Design",
     "pane" : {
-      "address" : "R[2]",
-      "isActive" : true,
-      "isActiveTool" : true
+      "address" : "R[2]"
     },
     "resourceKey" : "designmodel/com.vantiqse.imo.Design",
     "state" : 8,
     "type" : 121
   }, {
     "isPinned" : false,
-    "name" : "com.vantiqse.imo.PlantMES",
+    "name" : "com.vantiqse.imo.Issue",
     "pane" : {
-      "address" : "R[0]"
+      "address" : "R[5]"
     },
-    "resourceKey" : "source/com.vantiqse.imo.PlantMES",
-    "state" : 8,
-    "type" : 5
-  }, {
-    "isPinned" : false,
-    "name" : "com.vantiqse.imo.PlantMES",
-    "pane" : {
-      "address" : "R[1]"
-    },
-    "resourceKey" : "services/com.vantiqse.imo.PlantMES",
+    "resourceKey" : "services/com.vantiqse.imo.Issue",
     "state" : 8,
     "type" : 109
   }, {
     "isPinned" : false,
     "name" : "com.vantiqse.imo.Seating",
     "pane" : {
-      "address" : "R[3]"
+      "address" : "R[1]"
     },
     "resourceKey" : "services/com.vantiqse.imo.Seating",
+    "state" : 8,
+    "type" : 109
+  }, {
+    "isPinned" : false,
+    "name" : "com.vantiqse.imo.UIUpdates",
+    "pane" : {
+      "address" : "R[4]"
+    },
+    "resourceKey" : "services/com.vantiqse.imo.UIUpdates",
+    "state" : 8,
+    "type" : 109
+  }, {
+    "isPinned" : false,
+    "name" : "com.vantiqse.utils.Demo",
+    "pane" : {
+      "address" : "R[3]",
+      "isActive" : true,
+      "isActiveTool" : true
+    },
+    "resourceKey" : "services/com.vantiqse.utils.Demo",
     "state" : 8,
     "type" : 109
   } ],
   "type" : "dev",
   "views" : [ {
     "name" : "Project Contents",
-    "projectToolKeys" : [ "errorviewer/Errors", "tiledock/Inactive Panes", "logviewer/Log Messages", "list/Project Contents", "designmodel/com.vantiqse.imo.Design", "subsourceeditor/com.vantiqse.imo.PlantMES", "services/com.vantiqse.imo.PlantMES", "services/com.vantiqse.imo.Seating" ]
+    "projectToolKeys" : [ "collaborations/Collaborations", "errorviewer/Errors", "tiledock/Inactive Panes", "logviewer/Log Messages", "list/Project Contents", "services/com.vantiqse.imo.Board", "cmeditorprocedure/com.vantiqse.imo.Board.rowsOf", "designmodel/com.vantiqse.imo.Design", "services/com.vantiqse.imo.Issue", "services/com.vantiqse.imo.Seating", "services/com.vantiqse.imo.UIUpdates", "services/com.vantiqse.utils.Demo" ]
   } ]
 }

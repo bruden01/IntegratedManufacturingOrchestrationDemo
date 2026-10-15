@@ -1,28 +1,58 @@
 {
-  "active": true,
-  "agentFrameworkVersion": "1.1",
-  "ars_relationships": [],
-  "eventTypes": {
-    "PartStatus": {
-      "direction": "INBOUND",
-      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Seating.PartStatus/EventStream",
-      "isPrivate": false,
-      "isReliable": false
-    },
-    "Quality": {
-      "direction": "INBOUND",
-      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Seating.Quality/EventStream",
-      "isPrivate": false,
-      "isReliable": false
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
     }
   },
-  "isAgent": false,
-  "name": "com.vantiqse.imo.Seating",
-  "replicationFactor": 1,
-  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_version": 2,
-  "ars_createdAt": "2026-10-14T18:39:23.172Z",
-  "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4",
-  "ars_modifiedAt": "2026-10-14T18:41:12.565Z",
-  "ars_modifiedBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : [ ]
+  },
+  "ars_relationships" : [ ],
+  "description" : null,
+  "eventTypes" : {
+    "OutboundDamagedSeating" : {
+      "description" : "This outbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    },
+    "PartStatus" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.Seating.SeatingData/PartStatusStream",
+      "isPrivate" : false,
+      "isReliable" : false
+    },
+    "Quality" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.Seating.SeatingData/QualityStream",
+      "isPrivate" : false,
+      "isReliable" : false
+    },
+    "OutboundSeatingProgress" : {
+      "description" : "Replacement progress at Supplier A: the spare was picked, or the hold was released.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    },
+    "OutboundPickQueueConfirmed" : {
+      "description" : "Supplier A confirmed a re-prioritized pick after a build-order change.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    }
+  },
+  "globalType" : null,
+  "interface" : [ ],
+  "internalEventHandlers" : [ ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.Seating",
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : { }
 }

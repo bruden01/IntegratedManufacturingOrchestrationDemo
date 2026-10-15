@@ -41,6 +41,10 @@ TAKT_SEC = 180         # sim seconds between vehicles reaching line side
 FIRST_NEED_SEC = 860   # sim seconds until the first vehicle is needed
 TELEMETRY_SEC = 2      # sim seconds between tugger telemetry messages
 TICK_SEC = 0.25        # real seconds per loop iteration
+PICK_DELAY_SEC = 4.0   # real seconds from Vantiq reserving a spare to the picker taking it from the bin
+RELEASE_DELAY_SEC = 3.0   # real seconds from the pick to the supplier releasing the hold on the seat set
+PICK_QUEUE_DELAY_SEC = 1.0   # real seconds for Supplier A to confirm each re-prioritized pick
+HOLD_DELAY_SEC = 3.0   # real seconds from a failed quality scan to the supplier's system holding the seat set
 
 # (vehicle, seat) cycled to build the sequence; matches the dashboard mock.
 MIX = [
@@ -158,8 +162,10 @@ class Publisher:
 
 
 class Simulator:
-    def __init__(self, publisher, speed, opcua=None, erp=None):
+    def __init__(self, publisher, speed, opcua=None, erp=None, hold_delay=HOLD_DELAY_SEC, pick_delay=PICK_DELAY_SEC):
         self.pub = publisher
+        self.hold_delay = hold_delay
+        self.pick_delay = pick_delay
         self.opcua = opcua
         self.erp = erp
         self.lock = threading.RLock()
@@ -185,6 +191,7 @@ class Simulator:
     def reset(self):
         """Back to the healthy steady state."""
         with self.lock:
+            self.epoch = getattr(self, 'epoch', 0) + 1   # a reset drops any hold still waiting to land
             self.rev = 117
             self.vehicles = [self._make_vehicle(FIRST_SEQ + i, FIRST_NEED_SEC + i * TAKT_SEC) for i in range(WINDOW)]
             self.tuggers = {
@@ -353,19 +360,93 @@ class Simulator:
                 {'seq': vb['seq'], 'movedTo': a, 'note': 'pulled forward'},
             ],
         )
+        if self.erp:
+            threading.Thread(target=self._pick_queue_worker, args=(self.rev, self.epoch), daemon=True).start()
         return {'rev': self.rev, 'swapped': [va['seq'], vb['seq']]}
 
+    def _pick_queue_worker(self, rev, epoch):
+        """Supplier A's warehouse system. Vantiq writes the new pick order into pick_queue; Supplier A sees the
+        request, re-orders its picking, and confirms each vehicle."""
+        deadline = time.time() + 60
+        rows = []
+        while time.time() < deadline and not rows:
+            if epoch != self.epoch:
+                return
+            rows = self.erp.requested_picks(rev)
+            if not rows:
+                time.sleep(0.5)
+        for vin, seq, priority in rows:
+            time.sleep(PICK_QUEUE_DELAY_SEC)
+            with self.lock:
+                if epoch != self.epoch:
+                    return
+                self.erp.confirm_pick(vin)
+                self.pub.post('PartStatus', {
+                    'type': 'PartStatus', 'vin': vin, 'seq': seq, 'stage': 'PICK_QUEUE_CONFIRMED',
+                    'priority': priority, 'rev': rev, 'source': 'supplier-a', 'ts': now_iso(),
+                })
+
     def _scenario_damage(self):
-        """Vision check at the sequencing station flags a torn bolster."""
+        """Vision check at the sequencing station flags a torn bolster.
+
+        The failed scan is reported at once. A few seconds later the supplier's own system reacts and
+        holds the seat set: only then do the hold and its PartStatus appear.
+        """
         v = self.vehicles[3]
-        v['hold'] = True
-        v['defect'] = 'torn bolster'
         self.pub.post('Quality', {
             'type': 'QualityScan', 'result': 'FAIL', 'defect': 'torn bolster', 'station': 'SEQ-3',
             'vin': v['vin'], 'seq': v['seq'], 'source': 'supplier-a', 'ts': now_iso(),
         })
-        self._publish_part_status(v)
-        return {'seq': v['seq'], 'defect': 'torn bolster'}
+        epoch = self.epoch
+        timer = threading.Timer(self.hold_delay, self._apply_hold, args=(v, 'torn bolster', epoch))
+        timer.daemon = True
+        timer.start()
+        return {'seq': v['seq'], 'defect': 'torn bolster', 'holdInSec': self.hold_delay}
+
+    def _apply_hold(self, v, defect, epoch):
+        """The supplier's system places the hold: update its record and report the new status."""
+        with self.lock:
+            if epoch != self.epoch or v not in self.vehicles:
+                return   # reset, or the seat set already reached the line
+            v['hold'] = True
+            v['defect'] = defect
+            self._publish_part_status(v)
+        threading.Thread(target=self._picker, args=(v, epoch), daemon=True).start()
+
+    def _picker(self, v, epoch):
+        """The warehouse picker. A reserved spare is the pick request: the picker takes the spare from its bin,
+        then the supplier releases the hold and the replacement carries on as the seat set."""
+        deadline = time.time() + 120
+        bin_id = None
+        while time.time() < deadline and bin_id is None:
+            if epoch != self.epoch:
+                return
+            bin_id = self.erp.reserved_bin(v['seat']) if self.erp else None
+            if bin_id is None:
+                time.sleep(0.5)
+        if bin_id is None:
+            return   # Vantiq never reserved a spare
+        time.sleep(self.pick_delay)
+        with self.lock:
+            if epoch != self.epoch or v not in self.vehicles:
+                return
+            self.erp.consume_reserved(bin_id)
+            self._post_replacement(v, 'REPLACEMENT_PICKED', bin_id)
+        time.sleep(RELEASE_DELAY_SEC)
+        with self.lock:
+            if epoch != self.epoch or v not in self.vehicles:
+                return
+            v['hold'] = False
+            v['defect'] = None
+            if self.erp:
+                self.erp.update_seat_set(v)
+            self._post_replacement(v, 'HOLD_RELEASED', bin_id)
+
+    def _post_replacement(self, v, stage, bin_id):
+        self.pub.post('PartStatus', {
+            'type': 'PartStatus', 'vin': v['vin'], 'seq': v['seq'], 'stage': stage, 'bin': bin_id,
+            'needInSec': round(v['need']), 'source': 'supplier-a', 'ts': now_iso(),
+        })
 
     def _scenario_tugger(self):
         """Tugger T3 faults while carrying the two soonest seat sets."""
@@ -522,6 +603,8 @@ def main():
     ap.add_argument('--opcua-port', type=int, default=4840, help='OPC UA server port (0 disables)')
     ap.add_argument('--db-dir', default=None, help='where the SQLite system-of-record files live (default ../Databases/data)')
     ap.add_argument('--no-db', action='store_true', help='do not maintain the SQLite databases')
+    ap.add_argument('--pick-delay', type=float, default=PICK_DELAY_SEC, help='real seconds between Vantiq reserving a spare and the picker taking it')
+    ap.add_argument('--hold-delay', type=float, default=HOLD_DELAY_SEC, help='real seconds between a failed quality scan and the hold')
     ap.add_argument('--dry-run', action='store_true', help='print messages instead of publishing')
     args = ap.parse_args()
 
@@ -537,7 +620,7 @@ def main():
         from erp import Erp, DEFAULT_DATA_DIR
         erp = Erp(args.db_dir or DEFAULT_DATA_DIR)
         print(f'System databases: {erp.data_dir}', flush=True)
-    sim = Simulator(pub, args.speed, opcua, erp)
+    sim = Simulator(pub, args.speed, opcua, erp, args.hold_delay, args.pick_delay)
     server = ThreadingHTTPServer(('127.0.0.1', args.http_port), make_handler(sim))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f'Control panel: http://127.0.0.1:{args.http_port}/  ({"dry run" if args.dry_run else f"publishing to {args.broker}:{args.mqtt_port}"})', flush=True)

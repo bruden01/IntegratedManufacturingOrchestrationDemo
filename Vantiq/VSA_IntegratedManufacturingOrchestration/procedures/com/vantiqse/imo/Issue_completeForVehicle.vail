@@ -1,0 +1,11 @@
+// Completes the Issue collaboration for a vehicle. Partitioned by VIN, the collaboration's entity.
+package com.vantiqse.imo
+
+PROCEDURE Issue.completeForVehicle(vin String REQUIRED DESCRIPTION "VIN of the vehicle whose Issue collaboration is finished"): Boolean
+
+var collaboration = Issue.ActiveCollabsGetByEntityId(vin, "vehicle")
+if (collaboration == null) {
+    return false
+}
+EXECUTE Issue.ActiveCollabsUpdateStatus(collaboration.id, "completed") WITH partitionKey = collaboration.id
+return true

@@ -1,15 +1,7 @@
 {
-  "name": "JDBC",
-  "baseType": "EXTENSION",
-  "verticle": "service:extensionSource",
-  "config": {},
-  "baseConfigProperties": [
-    "jdbcConfig.general.username",
-    "jdbcConfig.general.password",
-    "jdbcConfig.general.dbURL"
-  ],
-  "ars_namespace": "VSA_IntegratedManufacturingOrchestration",
-  "ars_version": 1,
-  "ars_createdAt": "2026-10-14T19:00:08.049Z",
-  "ars_createdBy": "09a9342c-721b-4003-8993-6d7f5b083ca4"
+  "baseConfigProperties" : [ "jdbcConfig.general.username", "jdbcConfig.general.password", "jdbcConfig.general.dbURL" ],
+  "baseType" : "EXTENSION",
+  "config" : { },
+  "name" : "JDBC",
+  "verticle" : "service:extensionSource"
 }

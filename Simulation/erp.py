@@ -74,6 +74,7 @@ class Erp:
         def supplier_a(c):
             c.execute('DELETE FROM seat_sets')
             c.execute('DELETE FROM seat_inventory')
+            c.execute('DELETE FROM pick_queue')
             c.executemany('INSERT INTO seat_inventory (bin, seat_spec, on_hand, reserved, updated_at) VALUES (?,?,?,0,?)',
                           [(b, spec, qty, ts) for b, spec, qty in SPARE_BINS])
             for v in vehicles:
@@ -124,6 +125,38 @@ class Erp:
 
     def update_seat_set(self, v):
         self._run('supplier_a', lambda c: self._upsert_seat_set(c, v, now_iso()))
+
+    def reserved_bin(self, seat_spec):
+        """Bin holding a spare reserved for this seat spec, or None. A reservation is the pick request."""
+        with self.lock:
+            try:
+                row = self.conns['supplier_a'].execute(
+                    'SELECT bin FROM seat_inventory WHERE seat_spec = ? AND reserved > 0 ORDER BY bin LIMIT 1',
+                    (seat_spec,)).fetchone()
+                return row[0] if row else None
+            except sqlite3.Error:
+                return None
+
+    def consume_reserved(self, bin_id):
+        """The picker takes the reserved spare out of the bin."""
+        self._run('supplier_a', lambda c: c.execute(
+            'UPDATE seat_inventory SET on_hand = on_hand - 1, reserved = reserved - 1, updated_at = ? '
+            'WHERE bin = ? AND reserved > 0 AND on_hand > 0', (now_iso(), bin_id)))
+
+    def requested_picks(self, rev):
+        """Pick-queue rows Vantiq has asked for under this revision and Supplier A has not yet confirmed."""
+        with self.lock:
+            try:
+                return self.conns['supplier_a'].execute(
+                    "SELECT vin, seq, priority FROM pick_queue WHERE rev = ? AND state = 'REQUESTED' ORDER BY priority",
+                    (rev,)).fetchall()
+            except sqlite3.Error:
+                return []
+
+    def confirm_pick(self, vin):
+        """Supplier A re-orders its picking to the requested priority and confirms."""
+        self._run('supplier_a', lambda c: c.execute(
+            "UPDATE pick_queue SET state = 'CONFIRMED', updated_at = ? WHERE vin = ?", (now_iso(), vin)))
 
     def delete_seat_set(self, vin):
         """A delivered seat set leaves the warehouse system's open records."""

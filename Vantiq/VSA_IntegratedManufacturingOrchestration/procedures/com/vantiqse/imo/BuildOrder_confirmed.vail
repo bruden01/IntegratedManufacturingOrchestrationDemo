@@ -1,0 +1,16 @@
+// Turns Supplier A's confirmation of a re-prioritized pick into a UI update (kind PickQueueConfirmed).
+package com.vantiqse.imo
+
+STATELESS PROCEDURE BuildOrder.confirmed(event REQUIRED DESCRIPTION "Normalized PickQueueConfirmed event from Supplier A"): Object
+
+var priority = null
+var seq = null
+var rev = null
+if (event.detail != null) {
+    priority = event.detail.priority
+    seq = event.detail.seq
+    rev = event.detail.rev
+}
+var summary = "Supplier A confirmed the new pick order for " + event.vin + ": pick " + priority
+var result = {kind: "PickQueueConfirmed", ts: event.ts, vin: event.vin, seq: seq, rev: rev, priority: priority, summary: summary}
+return result

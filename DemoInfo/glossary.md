@@ -73,6 +73,7 @@ Plain-language definitions of the terms, systems, and protocols on the dashboard
 |---|---|
 | **SEQ-2, SEQ-3** | Sequencing stations in the supplier's facility. |
 | **Buffer B-14** | A stock area holding spare seats. When a seat is damaged, a replacement is reserved from here. |
+| **On hold** | Supplier A has put a hold on one seat set in its own system, so that set stops moving toward the line. The line is not held up. It only stops if the replacement misses that vehicle's need-in time. |
 | **T1, T3** | Individual tuggers in the fleet. |
 | **Line-stop risk (Low / Watch)** | **Watch** appears when the tightest buffer falls below 10 minutes. |
 | **Event to action** | The time from an event arriving to Vantiq's response being issued. |

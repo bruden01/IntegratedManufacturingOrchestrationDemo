@@ -1,0 +1,78 @@
+{
+  "active" : true,
+  "agentExtensionConfig" : {
+    "https://vantiq.com/agents/discussion" : {
+      "creationDisabled" : false
+    }
+  },
+  "agentFrameworkVersion" : "1.1",
+  "ars_properties" : {
+    "filterPrivateAIGenerated" : false,
+    "filterPrivateGenerated" : false,
+    "filterPublicAIGenerated" : false,
+    "filterPublicGenerated" : false,
+    "fragmentList" : [ ]
+  },
+  "ars_relationships" : [ ],
+  "description" : "Reacts to a plant build-order revision: re-prioritizes Supplier A's pick queue and reports each step. A plain service, not a collaboration: one request to one supplier and its confirmation.",
+  "eventTypes" : {
+    "InboundBuildOrderChange" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.BuildOrder.InboundBuildOrderChange/EventStream",
+      "isPrivate" : false,
+      "isReliable" : false
+    },
+    "InboundPickQueueConfirmed" : {
+      "direction" : "INBOUND",
+      "implementingResource" : "/collaborationtypes/com.vantiqse.imo.BuildOrder.InboundPickQueueConfirmed/EventStream",
+      "isPrivate" : false,
+      "isReliable" : false
+    },
+    "OutboundUIUpdate" : {
+      "description" : "A step of the build-order change, for the UIs.",
+      "direction" : "OUTBOUND",
+      "eventSchema" : null,
+      "isReliable" : false
+    }
+  },
+  "globalType" : null,
+  "interface" : [ {
+    "name" : "reprioritize",
+    "description" : "Re-prioritizes Supplier A's pick queue after a build-order revision and returns a UI update.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "Normalized BuildOrderRevised event from the plant MES"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  }, {
+    "name" : "confirmed",
+    "description" : "Turns Supplier A's pick-queue confirmation into a UI update.",
+    "parameters" : [ {
+      "name" : "event",
+      "type" : null,
+      "multi" : false,
+      "required" : true,
+      "default" : null,
+      "description" : "Normalized PickQueueConfirmed event from Supplier A"
+    } ],
+    "returnType" : {
+      "type" : "Object",
+      "multi" : false
+    },
+    "stateAccess" : "stateless"
+  } ],
+  "internalEventHandlers" : [ ],
+  "isAgent" : false,
+  "name" : "com.vantiqse.imo.BuildOrder",
+  "partitionedType" : null,
+  "replicationFactor" : 1,
+  "scheduledProcedures" : { }
+}

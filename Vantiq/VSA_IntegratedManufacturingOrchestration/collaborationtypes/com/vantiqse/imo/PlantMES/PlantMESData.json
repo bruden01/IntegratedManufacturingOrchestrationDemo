@@ -7,6 +7,14 @@
         "c58f3ece-1657-420a-8eed-a615c7ea16a1": {
           "x": 0,
           "y": 0.14672686230248308
+        },
+        "ac4e2fc2-829b-485d-8a12-5cff675d858c": {
+          "x": 0,
+          "y": 80.14672686230249
+        },
+        "e4be7920-eab3-424c-862c-de593704f537": {
+          "x": 0,
+          "y": 160.1467268623025
         }
       },
       "lastZoomRequest": 0,
@@ -42,7 +50,7 @@
         ],
         "inboundResource": "sources",
         "inboundResourceId": "com.vantiqse.imo.PlantMES",
-        "upsert": false
+        "parentStreams": []
       },
       "downstreamReferences": {},
       "name": "Initiate",
@@ -52,25 +60,64 @@
     },
     "Normalize": {
       "configuration": {
-        "transformation": "com.vantiqse.imo.Events.fromBuildOrder",
         "childStreams": [
           "PublishNormalized"
-        ]
+        ],
+        "parentStreams": [
+          "Initiate"
+        ],
+        "transformation": "com.vantiqse.imo.Events.fromBuildOrder"
       },
+      "description": "Maps the plant MES build-order message to the normalized event shape.",
       "name": "Normalize",
       "pattern": "Transformation",
-      "patternVersion": 5,
-      "description": "Maps the plant MES build-order message to the normalized event shape."
+      "patternVersion": 5
     },
     "PublishNormalized": {
       "configuration": {
+        "eventTypeName": "NormalizedEvent",
+        "parentStreams": [
+          "Normalize"
+        ],
         "service": "com.vantiqse.imo.Events",
-        "eventTypeName": "NormalizedEvent"
+        "childStreams": [
+          "FilterRevised"
+        ]
       },
+      "description": "Publishes the normalized event to the Events service.",
       "name": "PublishNormalized",
       "pattern": "PublishToService",
+      "patternVersion": 3
+    },
+    "FilterRevised": {
+      "configuration": {
+        "condition": "event.type == \"BuildOrderRevised\"",
+        "childStreams": [
+          "OutboundBuildOrderChange"
+        ],
+        "parentStreams": [
+          "PublishNormalized"
+        ]
+      },
+      "downstreamReferences": {},
+      "name": "FilterRevised",
+      "pattern": "Filter",
       "patternVersion": 5,
-      "description": "Publishes the normalized event to the Events service."
+      "uuid": "ac4e2fc2-829b-485d-8a12-5cff675d858c"
+    },
+    "OutboundBuildOrderChange": {
+      "configuration": {
+        "eventTypeName": "OutboundBuildOrderChange",
+        "parentStreams": [
+          "FilterRevised"
+        ],
+        "service": "com.vantiqse.imo.PlantMES"
+      },
+      "downstreamReferences": {},
+      "name": "OutboundBuildOrderChange",
+      "pattern": "PublishToEventType",
+      "patternVersion": 3,
+      "uuid": "e4be7920-eab3-424c-862c-de593704f537"
     }
   },
   "contextualizedAssembly": {},
@@ -80,6 +127,5 @@
   "keyTypes": [
     "collaborations"
   ],
-  "name": "com.vantiqse.imo.PlantMES.PlantMESData",
-  "ars_version": 4
+  "name": "com.vantiqse.imo.PlantMES.PlantMESData"
 }

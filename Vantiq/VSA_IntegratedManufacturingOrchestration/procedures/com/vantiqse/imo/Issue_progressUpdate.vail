@@ -1,0 +1,21 @@
+// Turns a replacement progress event from Supplier A (ReplacementPicked, HoldReleased) into a UI update. When the hold is released the vehicle's Issue collaboration is completed.
+package com.vantiqse.imo
+
+STATELESS PROCEDURE Issue.progressUpdate(event REQUIRED DESCRIPTION "Normalized ReplacementPicked or HoldReleased event"): Object
+
+var kind = event.type
+var bin = null
+var seq = null
+if (event.detail != null) {
+    bin = event.detail.bin
+    seq = event.detail.seq
+}
+var summary = "Supplier A released the hold on " + event.vin + ". The replacement carries on as its seat set."
+if (event.type == "ReplacementPicked") {
+    summary = "Supplier A's picker took the replacement from bin " + bin + " for " + event.vin
+} else {
+    EXECUTE Issue.completeForVehicle(event.vin) WITH partitionKey = event.vin
+}
+
+var result = {kind: kind, ts: event.ts, vin: event.vin, seq: seq, bin: bin, summary: summary}
+return result
