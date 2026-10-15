@@ -18,19 +18,16 @@ const money = (x) => `$${Number(x || 0).toLocaleString('en-US')}`;
 
 const pad = (x) => String(x).padStart(2, '0');
 const mmss = (sec) => `${pad(Math.floor(sec / 60))}:${pad(sec % 60)}`;
-const clock = (n) => {
-  const s = 6 * 3600 + 42 * 60 + 10 + n * 9;
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
-};
-
-const INITIAL_LOG = [
-  {
-    t: clock(0),
-    tag: 'PLANT',
-    event: 'Build-order rev 117 received. 40 vehicles in the next 2 hours.',
-    action: 'Sequence calculated, picks released to Supplier A',
-  },
-];
+// Log times use the viewer's own clock, so every entry reads on the same one.
+const timeOf = (ms) => new Date(ms).toLocaleTimeString('en-GB');
+// The starting entry is stamped a little in the past, so the shift reads as already running.
+const SEED_AGE_MS = 20 * 60 * 1000;
+const seedEntry = (startedAt) => ({
+  t: timeOf(startedAt - SEED_AGE_MS),
+  tag: 'PLANT',
+  event: 'Build-order rev 117 received. 12 vehicles in the next window.',
+  action: 'Sequence calculated, picks released to Supplier A',
+});
 
 const TAG_CLASS = {
   'BUILD ORDER': 'chip chip-info',
@@ -95,7 +92,7 @@ const tuggerFaultSteps = (f) => [
 export default function App() {
   const [flags, setFlags] = useState({ reorder: false, damage: false, tugger: false });
   const [log, setLog] = useState([]);
-  const [n, setN] = useState(0);
+  const [startedAt, setStartedAt] = useState(() => Date.now());   // when this run began; the starting log entry is dated from it
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [view, setView] = useState('dashboard');
   const { profile, handleLogout } = useAuth();
@@ -307,8 +304,7 @@ export default function App() {
     setFlags({ ...flags, [key]: true });
     // The build-order change and the tugger fault are logged from Vantiq's own updates, so they get no mock line here.
     if (key !== 'reorder' && key !== 'tugger') {
-      setLog([{ t: clock(n + 1), tag, event, action }, ...log]);
-      setN(n + 1);
+      setLog([{ t: timeOf(Date.now()), tag, event, action }, ...log]);
     }
   };
 
@@ -324,7 +320,7 @@ export default function App() {
     setTuggerFault(null);
     setMoves({});
     setEventToAction(null);
-    setN(0);
+    setStartedAt(Date.now());
   };
 
   // The tightest buffer and the risk come from Vantiq (planned slack minus the delay from holds, pending
@@ -371,7 +367,7 @@ export default function App() {
     { name: 'Line-side', count: 0, note: '', alert: false },
   ];
 
-  const fullLog = [...log, ...INITIAL_LOG];
+  const fullLog = [...log, seedEntry(startedAt)];
 
   return (
     <div className="shell">
