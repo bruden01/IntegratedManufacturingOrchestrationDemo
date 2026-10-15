@@ -4,7 +4,7 @@
     "rpPct": 30
   },
   "ars_relationships": [],
-  "ars_version": 22,
+  "ars_version": 27,
   "contents": {
     "connectors": [
       {
@@ -113,6 +113,30 @@
         "key": "41edd08d-3b5e-4221-94f4-c620c7bd9afe&EXTERNALOUT1",
         "name": "NEW-EXT-OUT",
         "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 8
+      },
+      {
+        "key": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40&EXTERNALIN1",
+        "name": "NEW-EXT-IN",
+        "parent": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40",
+        "type": 13
+      },
+      {
+        "key": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40&EXTERNALOUT1",
+        "name": "NEW-EXT-OUT",
+        "parent": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40",
+        "type": 8
+      },
+      {
+        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&EXTERNALIN1",
+        "name": "NEW-EXT-IN",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
+        "type": 13
+      },
+      {
+        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&EXTERNALOUT1",
+        "name": "NEW-EXT-OUT",
+        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
         "type": 8
       },
       {
@@ -284,8 +308,20 @@
         "type": 1
       },
       {
+        "key": "51&922d5bf9-8d95-4f73-880c-ebb7f829c0ca&OUTPUT1",
+        "name": "OutboundBuildOrderChange",
+        "parent": "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+        "type": 2
+      },
+      {
         "key": "51&a799df79-c21a-4741-8395-01c4b1b1fb43&OUTPUT2",
         "name": "OutboundSeatingProgress",
+        "parent": "a799df79-c21a-4741-8395-01c4b1b1fb43",
+        "type": 2
+      },
+      {
+        "key": "51&a799df79-c21a-4741-8395-01c4b1b1fb43&OUTPUT3",
+        "name": "OutboundPickQueueConfirmed",
         "parent": "a799df79-c21a-4741-8395-01c4b1b1fb43",
         "type": 2
       },
@@ -296,28 +332,22 @@
         "type": 1
       },
       {
-        "key": "51&922d5bf9-8d95-4f73-880c-ebb7f829c0ca&OUTPUT1",
-        "name": "OutboundBuildOrderChange",
-        "parent": "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
-        "type": 2
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&CALLIN7",
+        "name": "enrichDamagedSeating",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 5
       },
       {
-        "key": "51&a799df79-c21a-4741-8395-01c4b1b1fb43&OUTPUT3",
-        "name": "OutboundPickQueueConfirmed",
-        "parent": "a799df79-c21a-4741-8395-01c4b1b1fb43",
-        "type": 2
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&CALLIN8",
+        "name": "progressUpdate",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 5
       },
       {
-        "key": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40&EXTERNALIN1",
-        "name": "NEW-EXT-IN",
-        "parent": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40",
-        "type": 13
-      },
-      {
-        "key": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40&EXTERNALOUT1",
-        "name": "NEW-EXT-OUT",
-        "parent": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40",
-        "type": 8
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&CALLIN9",
+        "name": "completeForVehicle",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 5
       },
       {
         "key": "1aa2e618-5c78-4c53-8fd9-d79ce37a4c40&INPUT1",
@@ -362,16 +392,16 @@
         "type": 5
       },
       {
-        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&EXTERNALIN1",
-        "name": "NEW-EXT-IN",
-        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
-        "type": 13
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&CALLIN10",
+        "name": "assignTugger",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 5
       },
       {
-        "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&EXTERNALOUT1",
-        "name": "NEW-EXT-OUT",
-        "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
-        "type": 8
+        "key": "51&8b339503-a63f-43d9-8fcb-adb91099f133&OUTPUT1",
+        "name": "OutboundTuggerEvent",
+        "parent": "8b339503-a63f-43d9-8fcb-adb91099f133",
+        "type": 2
       },
       {
         "key": "32eee202-5fb5-477f-9459-5441cf6e14d3&INPUT1",
@@ -384,18 +414,6 @@
         "name": "NEW-OUT",
         "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
         "type": 4
-      },
-      {
-        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&CALLIN10",
-        "name": "assignTugger",
-        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
-        "type": 5
-      },
-      {
-        "key": "51&8b339503-a63f-43d9-8fcb-adb91099f133&OUTPUT1",
-        "name": "OutboundTuggerEvent",
-        "parent": "8b339503-a63f-43d9-8fcb-adb91099f133",
-        "type": 2
       },
       {
         "key": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&INPUT1",
@@ -426,6 +444,90 @@
         "name": "moved",
         "parent": "32eee202-5fb5-477f-9459-5441cf6e14d3",
         "type": 5
+      },
+      {
+        "key": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT1",
+        "name": "OutboundChargerFault",
+        "parent": "3df64409-0b40-4844-8013-8732309400a4",
+        "type": 2
+      },
+      {
+        "key": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT2",
+        "name": "OutboundConveyorJam",
+        "parent": "3df64409-0b40-4844-8013-8732309400a4",
+        "type": 2
+      },
+      {
+        "key": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT3",
+        "name": "OutboundMachineStateChanged",
+        "parent": "3df64409-0b40-4844-8013-8732309400a4",
+        "type": 2
+      },
+      {
+        "key": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT4",
+        "name": "OutboundMachineReading",
+        "parent": "3df64409-0b40-4844-8013-8732309400a4",
+        "type": 2
+      },
+      {
+        "key": "51&3df64409-0b40-4844-8013-8732309400a4&CALLIN1",
+        "name": "normalize",
+        "parent": "3df64409-0b40-4844-8013-8732309400a4",
+        "type": 5
+      },
+      {
+        "key": "51&922d5bf9-8d95-4f73-880c-ebb7f829c0ca&CALLIN1",
+        "name": "normalize",
+        "parent": "922d5bf9-8d95-4f73-880c-ebb7f829c0ca",
+        "type": 5
+      },
+      {
+        "key": "51&8b339503-a63f-43d9-8fcb-adb91099f133&CALLIN1",
+        "name": "normalizeFault",
+        "parent": "8b339503-a63f-43d9-8fcb-adb91099f133",
+        "type": 5
+      },
+      {
+        "key": "51&8b339503-a63f-43d9-8fcb-adb91099f133&CALLIN2",
+        "name": "normalizeTelemetry",
+        "parent": "8b339503-a63f-43d9-8fcb-adb91099f133",
+        "type": 5
+      },
+      {
+        "key": "51&a799df79-c21a-4741-8395-01c4b1b1fb43&CALLIN1",
+        "name": "normalizePartStatus",
+        "parent": "a799df79-c21a-4741-8395-01c4b1b1fb43",
+        "type": 5
+      },
+      {
+        "key": "51&a799df79-c21a-4741-8395-01c4b1b1fb43&CALLIN2",
+        "name": "normalizeQuality",
+        "parent": "a799df79-c21a-4741-8395-01c4b1b1fb43",
+        "type": 5
+      },
+      {
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT3",
+        "name": "InboundChargerFault",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 1
+      },
+      {
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT5",
+        "name": "InboundMachineReading",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 1
+      },
+      {
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT6",
+        "name": "InboundMachineStateChanged",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 1
+      },
+      {
+        "key": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT4",
+        "name": "InboundConveyorJam",
+        "parent": "41edd08d-3b5e-4221-94f4-c620c7bd9afe",
+        "type": 1
       }
     ],
     "links": [
@@ -483,6 +585,26 @@
         "isBidirectional": false,
         "source": "51&32eee202-5fb5-477f-9459-5441cf6e14d3&OUTPUT1",
         "target": "51&e468daf3-3d09-4393-8a6a-9f85c534c772&INPUT1"
+      },
+      {
+        "isBidirectional": false,
+        "source": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT1",
+        "target": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT3"
+      },
+      {
+        "isBidirectional": false,
+        "source": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT4",
+        "target": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT5"
+      },
+      {
+        "isBidirectional": false,
+        "source": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT3",
+        "target": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT6"
+      },
+      {
+        "isBidirectional": false,
+        "source": "51&3df64409-0b40-4844-8013-8732309400a4&OUTPUT2",
+        "target": "51&41edd08d-3b5e-4221-94f4-c620c7bd9afe&INPUT4"
       }
     ],
     "objects": [
@@ -609,16 +731,16 @@
     "prefs": {
       "scaleAndTranslationState": {
         "lastZoomRequest": 0,
-        "scale": 0.644058630349538,
+        "scale": 0.7117565809907368,
         "translate": [
-          366.9875370896861,
-          178.05514649314864
+          173.04177300974607,
+          188.72361840019482
         ]
       }
     },
     "v": 1
   },
-  "description": "No description given",
+  "description": "JIS seating demo: how the services connect.",
   "name": "com.vantiqse.imo.Design",
   "serviceEventRoutes": [
     {
@@ -699,6 +821,46 @@
       "eventTarget": {
         "eventTypeName": "InboundUIUpdate",
         "serviceName": "com.vantiqse.imo.UIUpdates"
+      }
+    },
+    {
+      "eventSource": {
+        "eventTypeName": "OutboundChargerFault",
+        "serviceName": "com.vantiqse.imo.Machines"
+      },
+      "eventTarget": {
+        "eventTypeName": "InboundChargerFault",
+        "serviceName": "com.vantiqse.imo.Issue"
+      }
+    },
+    {
+      "eventSource": {
+        "eventTypeName": "OutboundConveyorJam",
+        "serviceName": "com.vantiqse.imo.Machines"
+      },
+      "eventTarget": {
+        "eventTypeName": "InboundConveyorJam",
+        "serviceName": "com.vantiqse.imo.Issue"
+      }
+    },
+    {
+      "eventSource": {
+        "eventTypeName": "OutboundMachineReading",
+        "serviceName": "com.vantiqse.imo.Machines"
+      },
+      "eventTarget": {
+        "eventTypeName": "InboundMachineReading",
+        "serviceName": "com.vantiqse.imo.Issue"
+      }
+    },
+    {
+      "eventSource": {
+        "eventTypeName": "OutboundMachineStateChanged",
+        "serviceName": "com.vantiqse.imo.Machines"
+      },
+      "eventTarget": {
+        "eventTypeName": "InboundMachineStateChanged",
+        "serviceName": "com.vantiqse.imo.Issue"
       }
     }
   ]

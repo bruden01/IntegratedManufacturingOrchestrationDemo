@@ -40,6 +40,34 @@
       "eventSchema": null,
       "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundSeatingProgress/EventStream",
       "isReliable": false
+    },
+    "InboundChargerFault": {
+      "description": "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundChargerFault/EventStream",
+      "isReliable": false
+    },
+    "InboundConveyorJam": {
+      "description": "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundConveyorJam/EventStream",
+      "isReliable": false
+    },
+    "InboundMachineReading": {
+      "description": "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundMachineReading/EventStream",
+      "isReliable": false
+    },
+    "InboundMachineStateChanged": {
+      "description": "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+      "direction": "INBOUND",
+      "eventSchema": null,
+      "implementingResource": "/collaborationtypes/com.vantiqse.imo.Issue.InboundMachineStateChanged/EventStream",
+      "isReliable": false
     }
   },
   "globalType": null,

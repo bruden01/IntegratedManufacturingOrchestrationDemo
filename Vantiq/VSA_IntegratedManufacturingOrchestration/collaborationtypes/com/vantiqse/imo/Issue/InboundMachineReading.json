@@ -1,0 +1,25 @@
+{
+  "active" : true,
+  "ars_properties" : {
+    "isHidden" : false
+  },
+  "ars_relationships" : [ ],
+  "assembly" : {
+    "EventStream" : {
+      "configuration" : {
+        "eventTypeName" : "InboundMachineReading",
+        "inboundResource" : "services",
+        "inboundResourceId" : "com.vantiqse.imo.Issue",
+        "parentStreams" : [ ]
+      },
+      "name" : "EventStream",
+      "pattern" : "EventStream",
+      "patternVersion" : 5
+    }
+  },
+  "description" : "This inbound event was added by the Design Modeler 'com.vantiqse.imo.Design'.",
+  "disableBadging" : false,
+  "isComponent" : false,
+  "isEventHandler" : true,
+  "name" : "com.vantiqse.imo.Issue.InboundMachineReading"
+}
