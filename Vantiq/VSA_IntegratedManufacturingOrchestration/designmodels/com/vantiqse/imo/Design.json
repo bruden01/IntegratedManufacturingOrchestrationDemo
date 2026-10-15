@@ -4,7 +4,7 @@
     "rpPct": 30
   },
   "ars_relationships": [],
-  "ars_version": 27,
+  "ars_version": 32,
   "contents": {
     "connectors": [
       {
@@ -609,6 +609,7 @@
     ],
     "objects": [
       {
+        "description": "Supplier B's tugger fleet over MQTT: position, state and battery telemetry for each tugger every couple of seconds, and a fault message when a tugger breaks down.",
         "h": 50,
         "label": "SupplierMQTT",
         "resourceName": null,
@@ -619,6 +620,7 @@
         "y": -175.29848182842036
       },
       {
+        "description": "Supplier B's machine data over OPC UA: the charge level, state and fault code of each tugger charger, and the state, cart count and fault code of the dock conveyor. Vantiq subscribes to the changes and can also read a value on demand.",
         "h": 50,
         "label": "OPCUA",
         "resourceName": null,
@@ -629,6 +631,7 @@
         "y": 320.24005618005293
       },
       {
+        "description": "Receives the OPC UA machine feed, normalizes each change, and publishes it as one of four events: a charger fault, a conveyor jam, a state change, or a reading.",
         "h": 59,
         "label": "Machines",
         "resourceName": "com.vantiqse.imo.Machines",
@@ -640,6 +643,7 @@
         "y": 433.61330730541977
       },
       {
+        "description": "Receives the plant's build-order messages and normalizes them. When the plant revises the order, publishes a build-order change event.",
         "h": 59,
         "label": "PlantMES",
         "resourceName": "com.vantiqse.imo.PlantMES",
@@ -651,6 +655,7 @@
         "y": 71.98392035440442
       },
       {
+        "description": "Receives Supplier B's tugger telemetry and fault messages and normalizes them. Publishes tugger fault events, including Supplier B's report that it has moved the loads off a faulted tugger.",
         "h": 59,
         "label": "Tugger",
         "resourceName": "com.vantiqse.imo.Tugger",
@@ -662,6 +667,7 @@
         "y": -45.424719781086964
       },
       {
+        "description": "The plant MES over MQTT: the build-order window, published each time it advances and whenever the plant revises the order with a swap or a pull-forward.",
         "h": 50,
         "label": "PlantMQTT",
         "resourceName": null,
@@ -672,6 +678,7 @@
         "y": -68.94197780463867
       },
       {
+        "description": "Receives Supplier A's seat-set status and vision-check results and normalizes them. Publishes the damaged-seat event (a failed scan joined with a hold on the same vehicle), replacement progress, and pick-queue confirmations.",
         "h": 59,
         "label": "Seating",
         "resourceName": "com.vantiqse.imo.Seating",
@@ -695,6 +702,7 @@
         "y": 74.85891574601439
       },
       {
+        "description": "The damaged-seat case, one per vehicle. Reserves a spare in Supplier A's inventory, asks Supplier B for a tugger once the spare is picked, and closes the case when the hold is released. Machine faults are wired in here to show the intended path, but are not handled yet.",
         "h": 59,
         "label": "Issue",
         "resourceName": "com.vantiqse.imo.Issue",
@@ -706,6 +714,7 @@
         "y": 305.46460013334723
       },
       {
+        "description": "Handles a last-minute build-order change. Re-prioritizes Supplier A's pick queue for the vehicles that moved, and reports Supplier A's confirmation.",
         "h": 59,
         "label": "BuildOrder",
         "resourceName": "com.vantiqse.imo.BuildOrder",
@@ -717,6 +726,7 @@
         "y": 114.30204128463836
       },
       {
+        "description": "Handles a tugger fault. Moves the faulted tugger's seat sets to healthy tuggers, checking Supplier B's fleet and the chargers over OPC UA, then reports the move and the recomputed buffer.",
         "h": 59,
         "label": "Fleet",
         "resourceName": "com.vantiqse.imo.Fleet",
@@ -731,10 +741,10 @@
     "prefs": {
       "scaleAndTranslationState": {
         "lastZoomRequest": 0,
-        "scale": 0.7117565809907368,
+        "scale": 0.5356846392423639,
         "translate": [
-          173.04177300974607,
-          188.72361840019482
+          438.8251769417096,
+          242.34515508056745
         ]
       }
     },
