@@ -36,8 +36,9 @@ Drawer closed, dashboard live, all KPIs green. The simulator is already running 
 
 ## 6. Disruption 3: tugger fault (about 1.5 minutes)
 **Do:** Open the drawer, click **Tugger fault**.
-**See:** Tugger stage turns amber ("T3 down"), two rows show "Moved from T3 to T1," and the buffer drops to 6:10. The risk tile flips from **Low** to **Watch**.
-**Say:** "Now it's getting tight. Vantiq rerouted the load, but it also tells us we've lost margin."
+**See:** Tugger stage turns amber ("T3 down"), two rows show "Moved from T3 to T1," and the buffer dips to about 10:15 for a moment, then recovers to 11:50 once the loads are moved. The risk tile flips from **Low** to **Watch** during the dip (the Watch threshold is 11:00), then returns to **Low**.
+**Say:** "For a moment it got tight. Vantiq rerouted the loads and the buffer recovered, but we still lost margin: about 150 seconds on every set that had to move."
+**Timing:** The dip lasts only a few seconds, so point at the risk tile as soon as you click.
 **Behind the scenes:** Fault telemetry arrives over MQTT. Vantiq reassigns the affected loads and recomputes each deadline.
 
 ## 7. Close with the log and the point (about 1 minute)

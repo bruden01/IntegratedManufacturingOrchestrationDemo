@@ -1,4 +1,4 @@
-// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence. Each row has a buffer (planned slack minus the delay from a hold, a pending replacement or a tugger fault). Rows are in build order, which is line-side need order, so a build-order swap reorders the rows.
+// Builds the sequence board from the three systems of record: build orders (plant MES), seat sets and spare inventory (Supplier A ERP/WMS), tugger assignments (Supplier B fleet management). Joined on VIN and sequence. Each row has a buffer (planned slack minus the delay from a hold, a pending replacement or a tugger fault, or a pick-order change Supplier A has not confirmed). Rows are in build order, which is line-side need order, so a build-order swap reorders the rows.
 package com.vantiqse.imo
 import source com.vantiqse.imo.PlantMESDB
 import source com.vantiqse.imo.SupplierADB
@@ -11,6 +11,7 @@ var seatSetsRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, s
 var inventoryRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin, seat_spec, on_hand, reserved FROM seat_inventory ORDER BY bin"
 var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.seq AS seq, a.tugger_id AS tugger_id FROM assignments a"
 var tuggersRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id"
+var pickQueueRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, priority FROM pick_queue WHERE state = 'REQUESTED'"
 var movesRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, from_tugger FROM tugger_requests WHERE state = 'CONFIRMED' AND reason = 'TUGGER_FAULT'"
 
 var model = Board.bufferModel()
@@ -20,6 +21,7 @@ var inventory = Board.rowsOf(inventoryRes)
 var assignments = Board.rowsOf(assignmentsRes)
 var tuggers = Board.rowsOf(tuggersRes)
 var moves = Board.rowsOf(movesRes)
+var pendingPicks = Board.rowsOf(pickQueueRes)
 
 var reservedBySpec = {}
 for (inv in inventory) {
@@ -38,6 +40,14 @@ for (t in tuggers) {
 var movedFromByVin = {}
 for (m in moves) {
     movedFromByVin[m.vin] = m.from_tugger
+}
+var pulledForwardVin = null
+var firstPriority = null
+for (p in pendingPicks) {
+    if (firstPriority == null || p.priority < firstPriority) {
+        firstPriority = p.priority
+        pulledForwardVin = p.vin
+    }
 }
 var tuggerBySeq = {}
 for (a in assignments) {
@@ -100,6 +110,10 @@ for (o in orders) {
     if (movedFrom != null) {
         delay = delay + model.reassignSec
         why.push("moved from " + movedFrom)
+    }
+    if (pulledForwardVin != null && o.vin == pulledForwardVin && (stage == "QUEUED" || stage == "PICKING")) {
+        delay = delay + model.resequenceSec
+        why.push("pick order change awaiting Supplier A")
     }
     bufferSec = model.plannedSlackSec - delay
     if (tightest == null || bufferSec < tightest) {

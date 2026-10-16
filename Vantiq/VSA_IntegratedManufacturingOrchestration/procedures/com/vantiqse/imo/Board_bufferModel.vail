@@ -1,7 +1,7 @@
-// The buffer model: the planned slack of a healthy seat set and how much time each exception takes from it. A hold, a replacement still to be picked, a tugger fault and a load moved off a faulted tugger each reduce a vehicle's buffer. Tune the numbers here; getSequenceBoard reads them.
+// The buffer model: the planned slack of a healthy seat set and how much time each exception takes from it. A hold, a replacement still to be picked, a tugger fault, a load moved off a faulted tugger and a pulled-forward seat set whose new pick order Supplier A has not yet confirmed each reduce a vehicle's buffer. Tune the numbers here; getSequenceBoard reads them.
 package com.vantiqse.imo
 
 STATELESS PROCEDURE Board.bufferModel(): Object
 
-var model = {plannedSlackSec: 860, watchSec: 600, holdSec: 100, replacementPendingSec: 60, tuggerFaultSec: 330, reassignSec: 150}
+var model = {plannedSlackSec: 860, watchSec: 660, holdSec: 320, replacementPendingSec: 60, tuggerFaultSec: 330, reassignSec: 150, resequenceSec: 240}
 return model

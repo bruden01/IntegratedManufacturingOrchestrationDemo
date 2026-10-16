@@ -37,6 +37,9 @@ No new collaboration: a `BuildOrder` service (plain, not a collaboration) subscr
 ## Build status (2026-10-15)
 Built and deployed, not yet run end to end: `BuildOrder` service + two handlers + `reprioritize` / `confirmed` procedures; `pick_queue` table and simulator worker; `PlantMES.OutboundBuildOrderChange` and `Seating.OutboundPickQueueConfirmed`; web log and row notes. Waiting on: the three routes drawn in the Modeler (item 7), a simulator restart, and the buffer (item 2).
 
+## Buffer (item 6, built 2026-10-15)
+`Board.getSequenceBoard` reads Supplier A's `pick_queue` rows still `REQUESTED`. The pulled-forward vehicle (lowest requested priority) loses `resequenceSec` (240s) of buffer while its pick is QUEUED or PICKING, so the tightest buffer drops from 860s to 620s and line-stop risk reads Watch. When Supplier A confirms (`CONFIRMED`) the delay clears and risk returns to Low. The pushed-back vehicle is unchanged. Supplier A's confirmation delay is now 4s per pick so the dip is visible. Needs a simulator restart.
+
 ## Constraints
 Design-model pattern for service-to-service events. Visual handlers. Do not start or stop the simulator: say when it needs a restart.
 
