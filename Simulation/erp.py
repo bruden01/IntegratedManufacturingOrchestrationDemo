@@ -197,6 +197,16 @@ class Erp:
             except sqlite3.Error:
                 return []
 
+    def requested_replans(self):
+        """Seat sets Vantiq has asked Supplier B to swap between tuggers after a build-order change, not yet confirmed."""
+        with self.lock:
+            try:
+                return self.conns['supplier_b'].execute(
+                    "SELECT vin, seq, tugger_id, from_tugger FROM tugger_requests "
+                    "WHERE state = 'REQUESTED' AND reason = 'BUILD_ORDER' ORDER BY seq").fetchall()
+            except sqlite3.Error:
+                return []
+
     def confirm_tugger(self, vin, seq, tugger_id):
         """Supplier B assigns the seat set to the requested tugger and confirms."""
         ts = now_iso()

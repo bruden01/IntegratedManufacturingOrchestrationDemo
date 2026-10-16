@@ -11,7 +11,7 @@ var seatSetsRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, s
 var inventoryRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin, seat_spec, on_hand, reserved FROM seat_inventory ORDER BY bin"
 var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.seq AS seq, a.tugger_id AS tugger_id FROM assignments a"
 var tuggersRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id"
-var pickQueueRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, priority FROM pick_queue WHERE state = 'REQUESTED'"
+var pickQueueRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, priority, CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) AS waited_sec FROM pick_queue WHERE state = 'REQUESTED'"
 var movesRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, from_tugger FROM tugger_requests WHERE state = 'CONFIRMED' AND reason = 'TUGGER_FAULT'"
 
 var model = Board.bufferModel()
@@ -43,10 +43,12 @@ for (m in moves) {
 }
 var pulledForwardVin = null
 var firstPriority = null
+var pickWaitedSec = 0
 for (p in pendingPicks) {
     if (firstPriority == null || p.priority < firstPriority) {
         firstPriority = p.priority
         pulledForwardVin = p.vin
+        pickWaitedSec = p.waited_sec
     }
 }
 var tuggerBySeq = {}
@@ -112,7 +114,7 @@ for (o in orders) {
         why.push("moved from " + movedFrom)
     }
     if (pulledForwardVin != null && o.vin == pulledForwardVin && (stage == "QUEUED" || stage == "PICKING")) {
-        delay = delay + model.resequenceSec
+        delay = delay + model.resequenceSec + model.resequenceGrowthPerSec * pickWaitedSec
         why.push("pick order change awaiting Supplier A")
     }
     bufferSec = model.plannedSlackSec - delay

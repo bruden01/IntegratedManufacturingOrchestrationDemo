@@ -81,6 +81,23 @@
         "type" : "Object",
         "multi" : false
       }
+    },
+    {
+      "name" : "replan",
+      "description" : "After Supplier A confirms a new pick order, checks the two swapped sets' tuggers and chargers and asks Supplier B to swap their loads by writing requests into tugger_requests. Returns a UI update.",
+      "parameters" : [
+        {
+          "name" : "rev",
+          "type" : null,
+          "multi" : false,
+          "required" : true,
+          "description" : "Revision of the build order whose pick order Supplier A confirmed"
+        }
+      ],
+      "returnType" : {
+        "type" : "Object",
+        "multi" : false
+      }
     }
   ],
   "internalEventHandlers" : [],

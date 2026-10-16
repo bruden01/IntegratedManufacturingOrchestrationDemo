@@ -9,6 +9,9 @@ const BOARD_PROCEDURE = 'com.vantiqse.imo.Board.getSequenceBoard';
 const BOARD_POLL_MS = 3000;
 // Clears what Vantiq holds between demo runs (active Issue collaborations).
 const RESET_PROCEDURE = 'com.vantiqse.utils.Demo.reset';
+// Seconds until line-side need at which each stage ends, as the simulator stages a seat set once it is picking to the new order.
+const STAGE_BOUNDS = [['ON_TUGGER', 1100], ['STAGED', 1400], ['SEQUENCED', 1700], ['PICKING', 1900], ['QUEUED', Infinity]];
+const stageForNeed = (sec) => STAGE_BOUNDS.find(([, upper]) => sec <= upper)[0];
 const STAGE_LABEL = { QUEUED: 'Queued', PICKING: 'Picking', SEQUENCED: 'Sequenced', STAGED: 'Staged', ON_TUGGER: 'On tugger' };
 
 const SIM_URL = import.meta.env.VITE_SIM_URL || 'http://127.0.0.1:8765';
@@ -89,6 +92,17 @@ const tuggerFaultSteps = (f) => [
   { actor: 'Vantiq', text: f.tightestBufferSec != null ? `Vantiq recomputes the buffer: tightest ${mmss(f.tightestBufferSec)}, line-stop risk ${f.risk}` : 'Vantiq recomputes the buffer and the line-stop risk', at: f.recomputedTs },
 ];
 
+// The build-order change's path, step by step, with who does each step.
+const buildOrderSteps = (b) => [
+  { actor: 'Plant', text: `Plant revises the build order (rev ${b.rev ?? ''})`, at: b.eventTs },
+  { actor: 'Vantiq', text: b.changeSummary || "Vantiq re-prioritizes Supplier A's pick queue", at: b.changedTs },
+  { actor: 'Supplier A', text: 'Supplier A confirms it can pick in the new order', at: b.confirmedTs },
+  { actor: 'Vantiq', text: b.checkSummary || "Vantiq checks the tuggers in Supplier B's fleet system and their chargers over OPC UA", at: b.checkedTs },
+  { actor: 'Vantiq', text: b.requestSummary || 'Vantiq asks Supplier B to swap the tugger loads', at: b.requestedTs, warn: b.noMoves },
+  { actor: 'Supplier B', text: b.movedSummary || 'Supplier B swaps the loads', at: b.movedTs },
+  { actor: 'Vantiq', text: b.tightestBufferSec != null ? `Vantiq recomputes the buffer: tightest ${mmss(b.tightestBufferSec)}, line-stop risk ${b.risk}` : 'Vantiq recomputes the buffer and the line-stop risk', at: b.recomputedTs },
+];
+
 export default function App() {
   const [flags, setFlags] = useState({ reorder: false, damage: false, tugger: false });
   const [log, setLog] = useState([]);
@@ -107,6 +121,8 @@ export default function App() {
   const [incidents, setIncidents] = useState({});
   // The tugger fault handled by Vantiq, built from its UI updates ({tugger, code, moves, ...}), or null.
   const [tuggerFault, setTuggerFault] = useState(null);
+  // The build-order change handled by Vantiq (pick queue, then tuggers), built from its UI updates, or null.
+  const [buildOrder, setBuildOrder] = useState(null);
   // Pick-queue changes after a build-order revision, keyed by VIN: {note, confirmed}.
   const [moves, setMoves] = useState({});
   // Seconds from the triggering event to Vantiq's action, measured from the timestamps on the last UI update.
@@ -249,12 +265,24 @@ export default function App() {
             for (const m of u.moved || []) next[m.vin] = { note: m.note, priority: m.priority, confirmed: false };
             return next;
           });
+          setBuildOrder({ rev: u.rev, eventTs: u.eventTs, changedTs: u.ts, changeSummary: u.summary });
           setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'BUILD ORDER', event: `Plant revised the build order (rev ${u.rev})`, action: u.summary }, ...prev]);
           return;
         }
         if (u.kind === 'PickQueueConfirmed') {
           setMoves((prev) => (prev[u.vin] ? { ...prev, [u.vin]: { ...prev[u.vin], confirmed: true } } : prev));
+          setBuildOrder((prev) => (prev ? { ...prev, confirmedTs: u.ts } : prev));
           setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: `Seq ${u.seq} (${u.vin}): new pick order`, action: u.summary }, ...prev]);
+          return;
+        }
+        if (u.kind === 'TuggerReplanRequested') {
+          setBuildOrder((prev) => ({ ...(prev || {}), checkedTs: u.checkedTs, checkSummary: u.checkSummary || undefined, requestedTs: u.ts, requestSummary: u.summary, noMoves: !u.moves?.length }));
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'BUILD ORDER', event: 'Supplier A confirmed, so the tugger loads need to follow the new order', action: u.summary }, ...prev]);
+          return;
+        }
+        if (u.kind === 'TuggerReplanned') {
+          setBuildOrder((prev) => ({ ...(prev || {}), movedTs: u.ts, movedSummary: u.summary, recomputedTs: u.recomputedTs, tightestBufferSec: u.tightestBufferSec, risk: u.risk }));
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: u.summary, action: u.tightestBufferSec != null ? `Vantiq recomputed the buffer: tightest ${mmss(u.tightestBufferSec)}, line-stop risk ${u.risk}` : 'Vantiq recomputed the buffer' }, ...prev]);
           return;
         }
         if (u.kind === 'TuggerFault') {
@@ -320,6 +348,7 @@ export default function App() {
     setSeedCleared(false);
     setIncidents({});
     setTuggerFault(null);
+    setBuildOrder(null);
     setMoves({});
     setEventToAction(null);
     setStartedAt(Date.now());
@@ -343,7 +372,10 @@ export default function App() {
     const mv = moves[r.vin];
     const moved = mv ? `${mv.note === 'pulled forward' ? 'Pulled forward' : 'Pushed back'}${mv.confirmed ? ', Supplier A confirmed pick ' + mv.priority : ', waiting on Supplier A'}` : '';
     const note = [held, faulted, backend, moved].filter(Boolean).join(' · ');
-    const status = r.hold ? holdStatus(incidents[r.vin]) : STAGE_LABEL[r.stage] || r.stage;
+    // A pulled-forward set keeps its old stage until Supplier A accepts; show where it is headed.
+    const target = mv && !mv.confirmed && mv.note === 'pulled forward' ? stageForNeed(r.needInSec - simElapsed) : null;
+    const pendingStage = target && target !== r.stage ? ` → ${STAGE_LABEL[target]} (pending)` : '';
+    const status = r.hold ? holdStatus(incidents[r.vin]) : `${STAGE_LABEL[r.stage] || r.stage}${pendingStage}`;
     const tone = note ? 'act' : r.stage === 'QUEUED' || r.stage === 'PICKING' ? 'neutral' : 'ok';
     return {
       seq: r.seq,
@@ -371,7 +403,7 @@ export default function App() {
 
   const fullLog = seedCleared ? log : [...log, seedEntry(startedAt)];
   const clearLog = () => { setLog([]); setSeedCleared(true); };
-  const clearBehindTheScenes = () => { setIncidents({}); setTuggerFault(null); };
+  const clearBehindTheScenes = () => { setIncidents({}); setTuggerFault(null); setBuildOrder(null); };
 
   return (
     <div className="shell">
@@ -458,6 +490,11 @@ export default function App() {
           <div className="panel-head">
             <h2>Sequence board</h2>
             <span className="mono muted">One row per vehicle, in build order</span>
+            {Object.values(moves).some((m) => !m.confirmed) && (
+              <button type="button" className="btn btn-act" onClick={() => callSim('/supplier/confirm-pick')}>
+                Supplier A: confirm new pick order
+              </button>
+            )}
           </div>
           <div className="scroll-x">
             <div className="board-grid">
@@ -484,7 +521,7 @@ export default function App() {
         </section>
 
         <div className="side">
-          {(Object.values(incidents).length > 0 || tuggerFault) && (
+          {(Object.values(incidents).length > 0 || tuggerFault || buildOrder) && (
             <section className="panel pad">
               <div className="panel-head flush">
                 <h2>Behind the scenes</h2>
@@ -503,6 +540,18 @@ export default function App() {
                   ))}
                 </div>
               ))}
+              {buildOrder && (
+                <div className="incident">
+                  <div className="mono muted">Build-order change · rev {buildOrder.rev}</div>
+                  {buildOrderSteps(buildOrder).map((st, i) => (
+                    <div key={i} className={`step${st.at ? ' done' : ''}${st.warn ? ' warn' : ''}`}>
+                      <span className={`chip ${st.actor === 'Vantiq' ? 'chip-ok' : 'chip-info'}`}>{st.actor}</span>
+                      <span className="step-text">{st.text}</span>
+                      <span className="mono muted step-time">{st.at ? fmtTime(st.at) : 'waiting'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {tuggerFault && (
                 <div className="incident">
                   <div className="mono muted">Tugger {tuggerFault.tugger}</div>

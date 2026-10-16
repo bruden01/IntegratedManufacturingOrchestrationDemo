@@ -1,4 +1,4 @@
-// Turns Supplier B's report that it moved the loads into a UI update (kind TuggerReassigned) and recomputes the buffer from the board, so the update carries the new tightest buffer and the line-stop risk.
+// Turns Supplier B's report that it moved the loads into a UI update (kind TuggerReassigned, or TuggerReplanned when the move was the swap after a build-order change) and recomputes the buffer from the board, so the update carries the new tightest buffer and the line-stop risk.
 package com.vantiqse.imo
 import service com.vantiqse.imo.Board
 
@@ -16,5 +16,16 @@ if (detail.moved != null) {
     count = detail.moved.size()
 }
 var summary = "Supplier B moved " + count + " seat sets off " + detail.tugger
-var result = {kind: "TuggerReassigned", ts: event.ts, recomputedTs: now(), tugger: detail.tugger, moved: detail.moved, tightestBufferSec: tightest, risk: risk, summary: summary}
+var kind = "TuggerReassigned"
+if (detail.reason == "BUILD_ORDER") {
+    kind = "TuggerReplanned"
+    var parts = []
+    if (detail.moved != null) {
+        for (m in detail.moved) {
+            parts.push("seq " + m.seq + " from " + m.fromTugger + " to " + m.toTugger)
+        }
+    }
+    summary = "Supplier B swapped the loads: " + parts.join(", ")
+}
+var result = {kind: kind, ts: event.ts, recomputedTs: now(), tugger: detail.tugger, moved: detail.moved, tightestBufferSec: tightest, risk: risk, summary: summary}
 return result

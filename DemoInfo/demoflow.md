@@ -22,9 +22,11 @@ Drawer closed, dashboard live, all KPIs green. The simulator is already running 
 
 ## 4. Disruption 1: build-order change (about 1.5 minutes)
 **Do:** Pull up the drawer and click **Build-order change**. Close the drawer so the audience sees the dashboard, not the controls.
-**See:** Revision 117 becomes 118. Two rows flash amber and swap ("Pulled forward" and "Pushed back"). A log entry appears with the action Vantiq took.
-**Say:** "The plant changed its mind. Vantiq re-sequenced the picks in under two seconds, with no one phoning the supplier."
-**Behind the scenes:** The simulator publishes a revised build order. Vantiq detects the diff, recomputes the sequence, and re-prioritizes the supplier's pick queue.
+**See:** Revision 117 becomes 118. Two rows swap ("Pulled forward" and "Pushed back"). The pulled-forward row shows **Queued → Picking (pending)** and the tightest buffer starts to fall. The **Behind the scenes** panel lists the plant's change and Vantiq's request to Supplier A.
+**Do:** Take your time to point things out, then click **Supplier A: confirm new pick order** above the board. That plays a person at Supplier A committing that the new order can be picked.
+**See:** The pulled-forward row moves to **Picking** and the buffer recovers. Vantiq then checks the two tuggers in Supplier B's fleet system and their chargers over OPC UA and asks Supplier B to swap the loads. About 6 seconds later Supplier B reports the swap, and Vantiq recomputes the buffer. Every step shows in the panel and the log.
+**Say:** "The plant changed its mind. Vantiq asked Supplier A to re-sequence its picks. Until Supplier A commits, it is only a request, and the buffer gets worse the longer it waits. Once Supplier A confirms, Vantiq carries the change into Supplier B's fleet system so the tuggers follow the new order. No one phoned either supplier."
+**Behind the scenes:** The simulator publishes a revised build order. Vantiq re-prioritizes Supplier A's pick queue. The simulator waits for the Confirm button, then Supplier A confirms. Vantiq (`Fleet.replan`) checks both tuggers and chargers and writes a swap request for each set into Supplier B's `tugger_requests`. After `TUGGER_REPLAN_DELAY_SEC` (6 s) the simulator plays Supplier B swapping the loads and reporting it on the tugger channel.
 
 ## 5. Disruption 2: damaged seat (about 2 minutes)
 **Do:** Open the drawer, click **Damaged seat at station**, then close the drawer. Watch the **Behind the scenes** panel fill in over about 15 seconds.

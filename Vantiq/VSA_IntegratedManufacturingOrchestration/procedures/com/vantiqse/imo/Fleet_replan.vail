@@ -1,0 +1,86 @@
+// Plans the tugger loads after Supplier A confirms a re-prioritized pick order. The two swapped seat sets each take the tugger planned for the slot they now fill, so Vantiq checks both tuggers in Supplier B's database and their chargers over OPC UA, then writes a swap request for each set into Supplier B's tugger_requests table (reason BUILD_ORDER). Supplier B's fleet system carries it out and reports back. Returns the UI update payload (kind TuggerReplanRequested).
+package com.vantiqse.imo
+import source com.vantiqse.imo.SupplierADB
+import source com.vantiqse.imo.SupplierBDB
+import source com.vantiqse.imo.SupplierBMachines
+import service com.vantiqse.imo.Board
+
+STATELESS PROCEDURE Fleet.replan(rev REQUIRED DESCRIPTION "Revision of the build order whose pick order Supplier A confirmed"): Object
+
+var picks = Board.rowsOf(SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, seq FROM pick_queue WHERE rev = " + rev + " ORDER BY priority")
+var tuggers = Board.rowsOf(SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state FROM tuggers")
+var assignments = Board.rowsOf(SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT seq, tugger_id FROM assignments")
+
+// The pulled-forward set has the lowest priority number, so it is first.
+var first = null
+var second = null
+for (p in picks) {
+    if (first == null) {
+        first = p
+    } else if (second == null) {
+        second = p
+    }
+}
+var tuggerBySeq = {}
+for (a in assignments) {
+    tuggerBySeq[format("{0}", a.seq)] = a.tugger_id
+}
+var stateById = {}
+for (t in tuggers) {
+    stateById[t.id] = t.state
+}
+
+var checkedTs = now()
+var moves = []
+var checkSummary = ""
+var summary = "No tugger change needed"
+if (first != null && second != null) {
+    var fromFirst = tuggerBySeq[format("{0}", first.seq)]
+    var fromSecond = tuggerBySeq[format("{0}", second.seq)]
+    if (fromFirst != null && fromSecond != null && fromFirst != fromSecond) {
+        // Check both tuggers and their chargers.
+        var seen = []
+        var allHealthy = true
+        var ids = [fromFirst, fromSecond]
+        var charger = null
+        var chargerState = null
+        var chargePct = null
+        var stateRes = null
+        var pctRes = null
+        var healthy = false
+        for (tid in ids) {
+            charger = "CHG-" + tid.substring(1)
+            chargerState = null
+            chargePct = null
+            stateRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".State", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+            pctRes = SELECT ONE FROM SOURCE SupplierBMachines WITH queryStyle = "NodeId", nodeIdentifier = "Machine." + charger + ".ChargePct", nodeIdentifierType = "s", nsu = "urn:vantiqse:imo"
+            if (stateRes != null) {
+                chargerState = stateRes.dataValue
+            }
+            if (pctRes != null) {
+                chargePct = pctRes.dataValue
+            }
+            healthy = stateById[tid] != "FAULT" && chargerState != "FAULT" && chargePct != null
+            if (healthy) {
+                seen.push(tid + " is healthy and " + charger + " is at " + chargePct + "%")
+            } else {
+                seen.push(tid + " is not usable")
+                allHealthy = false
+            }
+        }
+        checkSummary = "Vantiq checked tuggers " + fromFirst + " and " + fromSecond + " in Supplier B's fleet system and their chargers over OPC UA: " + seen.join("; ")
+        if (allHealthy) {
+            var safeFirst = first.vin.replace("'", "''")
+            var safeSecond = second.vin.replace("'", "''")
+            PUBLISH {query: "INSERT INTO tugger_requests (vin, seq, tugger_id, state, updated_at, reason, from_tugger) VALUES ('" + safeFirst + "', " + first.seq + ", '" + fromSecond + "', 'REQUESTED', strftime('%Y-%m-%dT%H:%M:%fZ','now'), 'BUILD_ORDER', '" + fromFirst + "') ON CONFLICT(vin) DO UPDATE SET seq = excluded.seq, tugger_id = excluded.tugger_id, state = 'REQUESTED', updated_at = excluded.updated_at, reason = 'BUILD_ORDER', from_tugger = excluded.from_tugger"} TO SOURCE SupplierBDB
+            PUBLISH {query: "INSERT INTO tugger_requests (vin, seq, tugger_id, state, updated_at, reason, from_tugger) VALUES ('" + safeSecond + "', " + second.seq + ", '" + fromFirst + "', 'REQUESTED', strftime('%Y-%m-%dT%H:%M:%fZ','now'), 'BUILD_ORDER', '" + fromSecond + "') ON CONFLICT(vin) DO UPDATE SET seq = excluded.seq, tugger_id = excluded.tugger_id, state = 'REQUESTED', updated_at = excluded.updated_at, reason = 'BUILD_ORDER', from_tugger = excluded.from_tugger"} TO SOURCE SupplierBDB
+            moves.push({seq: first.seq, vin: first.vin, fromTugger: fromFirst, toTugger: fromSecond})
+            moves.push({seq: second.seq, vin: second.vin, fromTugger: fromSecond, toTugger: fromFirst})
+            summary = "Vantiq asked Supplier B to swap the loads: seq " + first.seq + " from " + fromFirst + " to " + fromSecond + ", seq " + second.seq + " from " + fromSecond + " to " + fromFirst
+        } else {
+            summary = "A tugger or charger is not usable. Needs a person to decide"
+        }
+    }
+}
+var result = {kind: "TuggerReplanRequested", ts: now(), checkedTs: checkedTs, rev: rev, moves: moves, checkSummary: checkSummary, summary: summary}
+return result

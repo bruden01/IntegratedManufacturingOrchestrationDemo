@@ -9,5 +9,5 @@ var t = "TuggerFault"
 if (e.type == "TuggerReassigned") {
     t = "TuggerReassigned"
 }
-var result = {type: t, source: "supplier-b/mqtt", ts: e.ts, detail: {tugger: e.tugger, code: e.code, description: e.description, carrying: e.carrying, moved: e.moved}}
+var result = {type: t, source: "supplier-b/mqtt", ts: e.ts, detail: {tugger: e.tugger, code: e.code, description: e.description, carrying: e.carrying, moved: e.moved, reason: e.reason}}
 return result

@@ -1,5 +1,8 @@
-// Turns Supplier A's confirmation of a re-prioritized pick into a UI update (kind PickQueueConfirmed).
+// Turns Supplier A's confirmation of a re-prioritized pick into a UI update (kind PickQueueConfirmed). The confirmation of the pulled-forward vehicle also starts the tugger plan: Fleet.replan asks Supplier B to swap the two loads, and its UI update (kind TuggerReplanRequested) is returned after the confirmation is published.
 package com.vantiqse.imo
+import source com.vantiqse.imo.SupplierADB
+import service com.vantiqse.imo.Board
+import service com.vantiqse.imo.Fleet
 
 STATELESS PROCEDURE BuildOrder.confirmed(event REQUIRED DESCRIPTION "Normalized PickQueueConfirmed event from Supplier A"): Object
 
@@ -13,4 +16,14 @@ if (event.detail != null) {
 }
 var summary = "Supplier A confirmed the new pick order for " + event.vin + ": pick " + priority
 var result = {kind: "PickQueueConfirmed", ts: event.ts, vin: event.vin, seq: seq, rev: rev, priority: priority, summary: summary}
+if (rev != null) {
+    // Only the pulled-forward vehicle (lowest pick priority) starts the plan, so it runs once per revision.
+    var lead = Board.rowsOf(SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin FROM pick_queue WHERE rev = " + rev + " ORDER BY priority LIMIT 1")
+    for (l in lead) {
+        if (l.vin == event.vin) {
+            PUBLISH result TO SERVICE EVENT "com.vantiqse.imo.BuildOrder/OutboundUIUpdate"
+            result = Fleet.replan(rev)
+        }
+    }
+}
 return result

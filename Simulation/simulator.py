@@ -43,8 +43,8 @@ TELEMETRY_SEC = 2      # sim seconds between tugger telemetry messages
 TICK_SEC = 0.25        # real seconds per loop iteration
 PICK_DELAY_SEC = 4.0   # real seconds from Vantiq reserving a spare to the picker taking it from the bin
 RELEASE_DELAY_SEC = 3.0   # real seconds from the pick to the supplier releasing the hold on the seat set
-PICK_QUEUE_DELAY_SEC = 4.0   # real seconds for Supplier A to confirm each re-prioritized pick (long enough for the board to show the buffer dip)
 TUGGER_MOVE_DELAY_SEC = 4.0   # real seconds for Supplier B to move the loads off a faulted tugger
+TUGGER_REPLAN_DELAY_SEC = 6.0   # real seconds for Supplier B to swap the loads after a build-order change (long enough to talk through the request)
 TUGGER_ASSIGN_DELAY_SEC = 2.0   # real seconds for Supplier B to assign the tugger Vantiq asked for
 HOLD_DELAY_SEC = 3.0   # real seconds from a failed quality scan to the supplier's system holding the seat set
 
@@ -73,6 +73,24 @@ def now_iso():
 
 def stage_for(need):
     return next(name for name, upper in STAGES if need <= upper)
+
+
+STAGE_ORDER = [name for name, _ in reversed(STAGES)]   # earliest stage first
+
+
+def held_stage(v):
+    """A seat set's stage: by its need time, unless a build-order change pins it. A pin held `until confirm` keeps the
+    stage until Supplier A accepts the new pick order; any other pin stops a set falling back to an earlier stage."""
+    natural = stage_for(v['need'])
+    pin = v.get('pin')
+    if pin is None:
+        return natural
+    if v.get('pin_wait'):
+        return pin
+    if STAGE_ORDER.index(natural) >= STAGE_ORDER.index(pin):
+        v.pop('pin')
+        return natural
+    return pin
 
 
 def load_vantiq_token():
@@ -171,6 +189,7 @@ class Simulator:
         self.opcua = opcua
         self.erp = erp
         self.lock = threading.RLock()
+        self.pick_confirm = threading.Event()   # set when the presenter, playing Supplier A, confirms the new pick order
         self.speed = speed
         self.paused = False
         self.reset()
@@ -194,6 +213,7 @@ class Simulator:
         """Back to the healthy steady state."""
         with self.lock:
             self.epoch = getattr(self, 'epoch', 0) + 1   # a reset drops any hold still waiting to land
+            self.pick_confirm.clear()
             self.rev = 117
             self.vehicles = [self._make_vehicle(FIRST_SEQ + i, FIRST_NEED_SEC + i * TAKT_SEC) for i in range(WINDOW)]
             self.tuggers = {
@@ -297,7 +317,7 @@ class Simulator:
             delivered = []
             for v in self.vehicles:
                 v['need'] -= dt
-                stage = stage_for(v['need'])
+                stage = held_stage(v)
                 if stage != v['stage'] and v['need'] > 0:
                     v['stage'] = stage
                     self._publish_part_status(v)
@@ -354,8 +374,12 @@ class Simulator:
         va['need'], vb['need'] = vb['need'], va['need']
         self.vehicles[a], self.vehicles[b] = vb, va
         self.rev += 1
+        # Nothing is picked differently until Supplier A accepts. The pulled-forward set stays where it was until
+        # then; the pushed-back set keeps the stage it has already reached (a set being picked does not un-pick).
+        vb['pin'], vb['pin_wait'] = vb['stage'], True
+        va['pin'] = va['stage']
         for v in (va, vb):
-            v['stage'] = stage_for(v['need'])
+            v['stage'] = held_stage(v)
             if self.erp:
                 self.erp.update_seat_set(v)
         self.publish_build_order(
@@ -365,13 +389,15 @@ class Simulator:
                 {'seq': vb['seq'], 'movedTo': a, 'note': 'pulled forward'},
             ],
         )
+        self.pick_confirm.clear()
         if self.erp:
             threading.Thread(target=self._pick_queue_worker, args=(self.rev, self.epoch), daemon=True).start()
         return {'rev': self.rev, 'swapped': [va['seq'], vb['seq']]}
 
     def _pick_queue_worker(self, rev, epoch):
         """Supplier A's warehouse system. Vantiq writes the new pick order into pick_queue; Supplier A sees the
-        request, re-orders its picking, and confirms each vehicle."""
+        request, then waits for a person at Supplier A to commit that the new order can be picked. The presenter plays
+        that person and presses Confirm; until then the change is only a request and the buffer stays reduced."""
         deadline = time.time() + 60
         rows = []
         while time.time() < deadline and not rows:
@@ -380,16 +406,55 @@ class Simulator:
             rows = self.erp.requested_picks(rev)
             if not rows:
                 time.sleep(0.5)
+        while not self.pick_confirm.wait(0.5):
+            if epoch != self.epoch:
+                return
         for vin, seq, priority in rows:
-            time.sleep(PICK_QUEUE_DELAY_SEC)
             with self.lock:
                 if epoch != self.epoch:
                     return
                 self.erp.confirm_pick(vin)
+                v = next((x for x in self.vehicles if x['vin'] == vin), None)
+                if v and v.pop('pin_wait', False):
+                    v.pop('pin', None)
+                    stage = held_stage(v)
+                    if stage != v['stage']:
+                        v['stage'] = stage
+                        self._publish_part_status(v)
                 self.pub.post('PartStatus', {
                     'type': 'PartStatus', 'vin': vin, 'seq': seq, 'stage': 'PICK_QUEUE_CONFIRMED',
                     'priority': priority, 'rev': rev, 'source': 'supplier-a', 'ts': now_iso(),
                 })
+        threading.Thread(target=self._tugger_replan_worker, args=(epoch,), daemon=True).start()
+
+    def _tugger_replan_worker(self, epoch):
+        """Supplier B's fleet system, after a build-order change. Vantiq writes the swap of the two loads into
+        tugger_requests; Supplier B sees it, swaps them after a pause, and reports that it has."""
+        deadline = time.time() + 30
+        rows = []
+        while time.time() < deadline and not rows:
+            if epoch != self.epoch:
+                return
+            rows = self.erp.requested_replans()
+            if not rows:
+                time.sleep(0.5)
+        if not rows:
+            return
+        time.sleep(TUGGER_REPLAN_DELAY_SEC)
+        moved = []
+        with self.lock:
+            if epoch != self.epoch:
+                return
+            for vin, seq, to, frm in rows:
+                for v in self.vehicles:
+                    if v['vin'] == vin:
+                        v['tugger'] = to
+                self.erp.confirm_tugger(vin, seq, to)
+                moved.append({'seq': seq, 'vin': vin, 'fromTugger': frm, 'toTugger': to})
+            self.pub.publish(f'{TOPIC_TUGGER}/{rows[0][3]}/fault', {
+                'type': 'TuggerReassigned', 'reason': 'BUILD_ORDER', 'tugger': rows[0][3], 'moved': moved,
+                'source': 'supplier-b', 'ts': now_iso(),
+            })
 
     def _scenario_damage(self):
         """Vision check at the sequencing station flags a torn bolster.
@@ -571,6 +636,7 @@ CONTROL_PAGE = """<!doctype html>
 <h1>IMO Simulator</h1>
 <div class="row">
   <button onclick="send('/scenario/reorder')">Build-order change</button>
+  <button onclick="send('/supplier/confirm-pick')">Supplier A confirms pick order</button>
   <button onclick="send('/scenario/damage')">Damaged seat</button>
   <button onclick="send('/scenario/tugger')">Tugger fault</button>
   <button onclick="send('/scenario/charger')">Charger fault</button>
@@ -628,6 +694,9 @@ def make_handler(sim):
                     self._send(200, {'ok': True, **sim.trigger(path.rsplit('/', 1)[1])})
                 except KeyError:
                     self._send(404, {'error': 'unknown scenario', 'available': ['reorder', 'damage', 'tugger', 'charger', 'conveyor']})
+            elif path == '/supplier/confirm-pick':
+                sim.pick_confirm.set()
+                self._send(200, {'ok': True})
             elif path == '/speed':
                 try:
                     factor = float(dict(p.split('=') for p in query.split('&') if '=' in p).get('factor', ''))
