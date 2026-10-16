@@ -44,6 +44,9 @@ TICK_SEC = 0.25        # real seconds per loop iteration
 PICK_DELAY_SEC = 4.0   # real seconds from Vantiq reserving a spare to the picker taking it from the bin
 REPLACEMENT_DELIVERY_DELAY_SEC = 10.0   # real seconds from the hold release to the tugger delivering the replacement
 RELEASE_DELAY_SEC = 3.0   # real seconds from the pick to the supplier releasing the hold on the seat set
+TUGGER_LOAD_AFTER_BUFFER_SEC = 10.0   # real seconds from Vantiq recomputing the buffer after the last move to the first moved load being on its new tugger
+TUGGER_LOAD_NEXT_SEC = 5.0   # real seconds from one new tugger being loaded to the next
+VANTIQ_RECOMPUTE_ALLOWANCE_SEC = 2.0   # real seconds Vantiq takes to recompute the buffer after Supplier B reports a move
 TUGGER_MOVE_DELAY_SEC = 5.0   # real seconds for Supplier B to move each load off a faulted tugger (one at a time)
 TUGGER_REPLAN_DELAY_SEC = 6.0   # real seconds for Supplier B to swap the loads after a build-order change (long enough to talk through the request)
 TUGGER_ASSIGN_DELAY_SEC = 2.0   # real seconds for Supplier B to assign the tugger Vantiq asked for
@@ -589,18 +592,52 @@ class Simulator:
         if not rows:
             return
         # Supplier B moves one load at a time, so the dashboard shows each set changing tugger in turn.
+        moved = []
         for vin, seq, to, frm in rows:
             time.sleep(TUGGER_MOVE_DELAY_SEC)
             with self.lock:
                 if epoch != self.epoch:
                     return
+                self.erp.confirm_tugger(vin, seq, to)
                 for v in self.vehicles:
                     if v['vin'] == vin:
                         v['tugger'] = to
-                self.erp.confirm_tugger(vin, seq, to)
+                        # Off the faulted tugger and waiting at the dock until the new tugger takes it.
+                        v['pin'], v['pin_wait'] = 'STAGED', True
+                        v['stage'] = held_stage(v)
+                        self._publish_part_status(v)
+                moved.append({'seq': seq, 'vin': vin, 'fromTugger': frm, 'toTugger': to})
                 self.pub.publish(f'{TOPIC_TUGGER}/{frm}/fault', {
                     'type': 'TuggerReassigned', 'tugger': frm,
                     'moved': [{'seq': seq, 'vin': vin, 'fromTugger': frm, 'toTugger': to}],
+                    'source': 'supplier-b', 'ts': now_iso(),
+                })
+        threading.Thread(target=self._tugger_load_worker, args=(epoch, moved), daemon=True).start()
+
+    def _tugger_load_worker(self, epoch, moved):
+        """Supplier B's tuggers take the moved loads, one new tugger after another. A load only counts as on its tugger
+        (and the buffer only recovers) once it is loaded. The timers start when Vantiq has recomputed the buffer after
+        the last move."""
+        groups = {}
+        for m in moved:
+            groups.setdefault(m['toTugger'], []).append(m)
+        wait = VANTIQ_RECOMPUTE_ALLOWANCE_SEC + TUGGER_LOAD_AFTER_BUFFER_SEC
+        for to in sorted(groups):
+            time.sleep(wait)
+            wait = TUGGER_LOAD_NEXT_SEC
+            with self.lock:
+                if epoch != self.epoch:
+                    return
+                for m in groups[to]:
+                    self.erp.deliver_move(m['vin'])
+                    for v in self.vehicles:
+                        if v['vin'] == m['vin']:
+                            v.pop('pin_wait', None)
+                            v.pop('pin', None)
+                            v['stage'] = held_stage(v)
+                            self._publish_part_status(v)
+                self.pub.publish(f"{TOPIC_TUGGER}/{groups[to][0]['fromTugger']}/fault", {
+                    'type': 'TuggerLoaded', 'tugger': to, 'fromTugger': groups[to][0]['fromTugger'], 'moved': groups[to],
                     'source': 'supplier-b', 'ts': now_iso(),
                 })
 

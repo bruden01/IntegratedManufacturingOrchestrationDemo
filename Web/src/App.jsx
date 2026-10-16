@@ -84,6 +84,19 @@ const incidentSteps = (inc) => [
   { actor: 'Vantiq', text: 'Vantiq sees the replacement arrive, recomputes the buffer and closes the case', at: inc.delivered },
 ];
 
+// A moved load is not on its new tugger until Supplier B loads it: one step per new tugger, then Vantiq's last recompute.
+const tuggerLoadSteps = (f) => {
+  const groups = {};
+  for (const m of f.moves || []) (groups[m.toTugger] = groups[m.toTugger] || []).push(m.seq);
+  const tos = Object.keys(groups).sort();
+  if (!tos.length) return [];
+  const last = f.loaded?.[tos[tos.length - 1]];
+  return [
+    ...tos.map((to) => ({ actor: 'Supplier B', text: `Supplier B loads seq ${groups[to].join(', ')} onto ${to}`, at: f.loaded?.[to]?.ts })),
+    { actor: 'Vantiq', text: last?.tightestBufferSec != null ? `Vantiq recomputes the buffer: tightest ${mmss(last.tightestBufferSec)}, line-stop risk ${last.risk}` : 'Vantiq recomputes the buffer once every load is on its tugger', at: last?.recomputedTs },
+  ];
+};
+
 // The tugger fault's path, step by step, with who does each step.
 const tuggerFaultSteps = (f) => [
   { actor: 'Supplier B', text: `Tugger ${f.tugger} reports fault ${f.code || ''}${f.description ? ` (${f.description})` : ''}${f.carrying?.length ? `, carrying seq ${f.carrying.join(', ')}` : ''}`, at: f.faultTs },
@@ -96,6 +109,7 @@ const tuggerFaultSteps = (f) => [
     return { actor: 'Supplier B', text: `Supplier B moves seq ${m.seq} from ${m.fromTugger} to ${m.toTugger}`, at: done?.at };
   }),
   { actor: 'Vantiq', text: f.tightestBufferSec != null ? `Vantiq recomputes the buffer: tightest ${mmss(f.tightestBufferSec)}, line-stop risk ${f.risk}` : 'Vantiq recomputes the buffer and the line-stop risk', at: f.recomputedTs },
+  ...tuggerLoadSteps(f),
 ];
 
 // The build-order change's path, step by step, with who does each step.
@@ -296,6 +310,11 @@ export default function App() {
           setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'EQUIPMENT', event: `Tugger ${u.tugger} reported fault ${u.code}${u.description ? ` (${u.description})` : ''}`, action: u.unplaced > 0 && !u.moves?.length ? 'No healthy tugger available, needs a person to decide' : u.summary }, ...prev]);
           return;
         }
+        if (u.kind === 'TuggerLoaded') {
+          setTuggerFault((prev) => ({ ...(prev || { tugger: u.fromTugger }), loaded: { ...(prev?.loaded || {}), [u.tugger]: { ts: u.ts, recomputedTs: u.recomputedTs, tightestBufferSec: u.tightestBufferSec, risk: u.risk } } }));
+          setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: u.summary, action: u.tightestBufferSec != null ? `Vantiq recomputed the buffer: tightest ${mmss(u.tightestBufferSec)}, line-stop risk ${u.risk}` : 'Vantiq recomputed the buffer' }, ...prev]);
+          return;
+        }
         if (u.kind === 'TuggerReassigned') {
           setTuggerFault((prev) => ({ ...(prev || { tugger: u.tugger }), movedTs: u.ts, movedDone: [...(prev?.movedDone || []), ...(u.moved || []).map((m) => ({ ...m, at: u.ts }))], recomputedTs: u.recomputedTs, tightestBufferSec: u.tightestBufferSec, risk: u.risk }));
           setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: u.summary, action: u.tightestBufferSec != null ? `Vantiq recomputed the buffer: tightest ${mmss(u.tightestBufferSec)}, line-stop risk ${u.risk}` : 'Vantiq recomputed the buffer' }, ...prev]);
@@ -373,7 +392,7 @@ export default function App() {
   const handled = Object.values(flags).filter(Boolean).length;
 
   const rows = (board?.rows || []).map((r) => {
-    const faulted = r.tuggerFault ? `Tugger ${r.tugger} fault ${r.tuggerFault}` : r.movedFrom ? `Moved from ${r.movedFrom} to ${r.tugger}` : '';
+    const faulted = r.tuggerFault ? `Tugger ${r.tugger} fault ${r.tuggerFault}` : r.movedFrom ? `Moved from ${r.movedFrom} to ${r.tugger}, waiting to load` : '';
     const held = r.hold ? `Hold: ${r.defect || 'quality'}` : '';
     const inc = incidents[r.vin];
     const backend = inc ? incidentNote(inc) : '';
@@ -386,7 +405,7 @@ export default function App() {
     const plannedMove = (tuggerFault?.moves || []).find((m) => m.vin === r.vin);
     const tuggerStatus = r.tuggerFault
       ? `Tugger ${r.tugger} down: ${plannedMove ? `Supplier B to move to ${plannedMove.toTugger}` : 'finding another tugger'}`
-      : r.movedFrom ? `Moved from ${r.movedFrom} to ${r.tugger}` : '';
+      : r.movedFrom ? `Staged: waiting for ${r.tugger}` : '';
     const status = r.hold ? holdStatus(incidents[r.vin]) : tuggerStatus || `${STAGE_LABEL[r.stage] || r.stage}${pendingStage}`;
     const tone = note ? 'act' : r.stage === 'QUEUED' || r.stage === 'PICKING' ? 'neutral' : 'ok';
     return {

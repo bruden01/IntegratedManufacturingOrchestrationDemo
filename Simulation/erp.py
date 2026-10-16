@@ -207,6 +207,11 @@ class Erp:
             except sqlite3.Error:
                 return []
 
+    def deliver_move(self, vin):
+        """The moved load is on its new tugger: Supplier B closes the move request."""
+        self._run('supplier_b', lambda c: c.execute(
+            "UPDATE tugger_requests SET state = 'DELIVERED', updated_at = ? WHERE vin = ? AND reason = 'TUGGER_FAULT'", (now_iso(), vin)))
+
     def deliver_replacement(self, vin):
         """The tugger has brought the replacement: Supplier B closes the request."""
         self._run('supplier_b', lambda c: c.execute(

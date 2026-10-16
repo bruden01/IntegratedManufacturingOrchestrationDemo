@@ -13,7 +13,7 @@ var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.s
 var tuggersRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id"
 var pickQueueRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, priority, CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) AS waited_sec FROM pick_queue WHERE state = 'REQUESTED'"
 var transitRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, tugger_id FROM tugger_requests WHERE reason = 'REPLACEMENT' AND state = 'CONFIRMED'"
-var movesRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, from_tugger FROM tugger_requests WHERE state = 'CONFIRMED' AND reason = 'TUGGER_FAULT'"
+var movesRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, from_tugger, CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) AS waited_sec FROM tugger_requests WHERE state = 'CONFIRMED' AND reason = 'TUGGER_FAULT'"
 
 var model = Board.bufferModel()
 var orders = Board.rowsOf(ordersRes)
@@ -40,8 +40,10 @@ for (t in tuggers) {
     tuggerById[t.id] = t
 }
 var movedFromByVin = {}
+var movedWaitedByVin = {}
 for (m in moves) {
     movedFromByVin[m.vin] = m.from_tugger
+    movedWaitedByVin[m.vin] = m.waited_sec
 }
 var pulledForwardVin = null
 var firstPriority = null
@@ -120,7 +122,7 @@ for (o in orders) {
         why.push("tugger fault")
     }
     if (movedFrom != null) {
-        delay = delay + model.reassignSec
+        delay = delay + model.reassignSec + model.reassignGrowthPerSec * movedWaitedByVin[o.vin]
         why.push("moved from " + movedFrom)
     }
     if (pulledForwardVin != null && o.vin == pulledForwardVin && (stage == "QUEUED" || stage == "PICKING")) {

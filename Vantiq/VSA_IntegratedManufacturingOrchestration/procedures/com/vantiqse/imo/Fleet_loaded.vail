@@ -1,0 +1,22 @@
+// Turns Supplier B's report that a moved load is now on its new tugger into a UI update (kind TuggerLoaded) and recomputes the buffer from the board, so the update carries the new tightest buffer and the line-stop risk.
+package com.vantiqse.imo
+import service com.vantiqse.imo.Board
+
+STATELESS PROCEDURE Fleet.loaded(event REQUIRED DESCRIPTION "Normalized TuggerLoaded event from Supplier B"): Object
+
+var detail = event.detail
+var board = Board.getSequenceBoard()
+var tightest = board.tightestBufferSec
+var risk = "Low"
+if (tightest != null && tightest < board.watchSec) {
+    risk = "Watch"
+}
+var parts = []
+if (detail.moved != null) {
+    for (m in detail.moved) {
+        parts.push("seq " + m.seq)
+    }
+}
+var summary = "Supplier B loaded " + parts.join(", ") + " onto " + detail.tugger
+var result = {kind: "TuggerLoaded", ts: event.ts, recomputedTs: now(), tugger: detail.tugger, fromTugger: detail.fromTugger, moved: detail.moved, tightestBufferSec: tightest, risk: risk, summary: summary}
+return result

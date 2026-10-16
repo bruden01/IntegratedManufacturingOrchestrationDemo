@@ -38,10 +38,10 @@ Drawer closed, dashboard live, all KPIs green. The simulator is already running 
 
 ## 6. Disruption 3: tugger fault (about 1.5 minutes)
 **Do:** Open the drawer, click **Tugger fault**.
-**See:** Tugger stage turns amber ("T3 down"), two rows show "Moved from T3 to T1," and the buffer dips to about 10:15 for a moment, then recovers to 11:50 once the loads are moved. The risk tile flips from **Low** to **Watch** during the dip (the Watch threshold is 11:00), then returns to **Low**.
-**Say:** "For a moment it got tight. Vantiq rerouted the loads and the buffer recovered, but we still lost margin: about 150 seconds on every set that had to move."
-**Timing:** The dip lasts only a few seconds, so point at the risk tile as soon as you click.
-**Behind the scenes:** Fault telemetry arrives over MQTT. Vantiq reassigns the affected loads and recomputes each deadline.
+**See:** Tugger stage turns amber ("T3 down"). Supplier B moves the two loads off T3 one at a time (5 seconds apart). Each row drops to **Staged: waiting for T1** (or T2) and its buffer keeps falling, because a load that is off the faulted tugger but not yet on a new one is still a risk. The risk tile flips from **Low** to **Watch**. After the last move Vantiq recomputes the buffer, then 10 seconds later the T1 load is loaded and its row shows **On tugger**, and 5 seconds after that the T2 load is. The buffer recovers as each load lands.
+**Say:** "Moving a load in the fleet system is not the same as having it on a tugger. Until Supplier B actually loads it, the clock keeps running and the buffer keeps shrinking. Vantiq tracked it all the way to the tugger."
+**Timing:** About 25 seconds from the click to the last load on its tugger. Point at the risk tile and the Behind the scenes panel while you wait.
+**Behind the scenes:** Fault telemetry arrives over MQTT. Vantiq finds the loads on the faulted tugger, checks the other tuggers and chargers, and writes a move request for each load into Supplier B's fleet system. The simulator plays Supplier B moving each load (`TUGGER_MOVE_DELAY_SEC`), then, after Vantiq recomputes the buffer, loading the first new tugger (`TUGGER_LOAD_AFTER_BUFFER_SEC`, 10 s) and the next (`TUGGER_LOAD_NEXT_SEC`, 5 s). The buffer penalty for a moved load grows by `reassignGrowthPerSec` every second until it is on its tugger.
 
 ## 7. Close with the log and the point (about 1 minute)
 **Show:** The event and action log, which reads as a short story: event, then what was done.
