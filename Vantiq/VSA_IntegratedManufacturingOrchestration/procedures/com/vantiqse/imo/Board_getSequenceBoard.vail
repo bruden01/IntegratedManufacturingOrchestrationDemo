@@ -12,6 +12,7 @@ var inventoryRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT bin, 
 var assignmentsRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT a.seq AS seq, a.tugger_id AS tugger_id FROM assignments a"
 var tuggersRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT id, state, fault_code FROM tuggers ORDER BY id"
 var pickQueueRes = SELECT ONE FROM SOURCE SupplierADB WITH query = "SELECT vin, priority, CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) AS waited_sec FROM pick_queue WHERE state = 'REQUESTED'"
+var transitRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, tugger_id FROM tugger_requests WHERE reason = 'REPLACEMENT' AND state = 'CONFIRMED'"
 var movesRes = SELECT ONE FROM SOURCE SupplierBDB WITH query = "SELECT vin, from_tugger FROM tugger_requests WHERE state = 'CONFIRMED' AND reason = 'TUGGER_FAULT'"
 
 var model = Board.bufferModel()
@@ -22,6 +23,7 @@ var assignments = Board.rowsOf(assignmentsRes)
 var tuggers = Board.rowsOf(tuggersRes)
 var moves = Board.rowsOf(movesRes)
 var pendingPicks = Board.rowsOf(pickQueueRes)
+var inTransit = Board.rowsOf(transitRes)
 
 var reservedBySpec = {}
 for (inv in inventory) {
@@ -50,6 +52,10 @@ for (p in pendingPicks) {
         pulledForwardVin = p.vin
         pickWaitedSec = p.waited_sec
     }
+}
+var transitTuggerByVin = {}
+for (r in inTransit) {
+    transitTuggerByVin[r.vin] = r.tugger_id
 }
 var tuggerBySeq = {}
 for (a in assignments) {
@@ -104,6 +110,10 @@ for (o in orders) {
             delay = delay + model.replacementPendingSec
             why.push("replacement to be picked")
         }
+    }
+    if (hold == false && transitTuggerByVin[o.vin] != null) {
+        delay = delay + model.replacementTransitSec
+        why.push("replacement on its way on " + transitTuggerByVin[o.vin])
     }
     if (fault != null) {
         delay = delay + model.tuggerFaultSec

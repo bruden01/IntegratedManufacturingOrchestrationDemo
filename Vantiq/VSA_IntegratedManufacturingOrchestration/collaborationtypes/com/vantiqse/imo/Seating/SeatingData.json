@@ -236,7 +236,7 @@
     },
     "FilterProgress": {
       "configuration": {
-        "condition": "event.type == \"ReplacementPicked\" || event.type == \"ReplacementOnTugger\" || event.type == \"HoldReleased\"",
+        "condition": "event.type == \"ReplacementPicked\" || event.type == \"ReplacementOnTugger\" || event.type == \"HoldReleased\" || event.type == \"ReplacementDelivered\"",
         "childStreams": [
           "OutboundSeatingProgress"
         ],

@@ -47,3 +47,6 @@ Built:
 - **Web.** The mock log line for the Tugger button is gone; the panel block, log lines and the "Moved from T3 to T1" row note come from Vantiq.
 
 Routes to draw in the Modeler (cannot be written through the API): add the `Fleet` service to the design model, then (1) `Tugger.OutboundTuggerEvent` -> `Fleet.InboundTuggerEvent`, (2) `Fleet.OutboundUIUpdate` -> `UIUpdates.InboundUIUpdate`.
+
+## Later: make the request to Supplier B visible (2026-10-15)
+Behaviour is right and stays as is. The requests to Supplier B (`Fleet.reassign`, `Fleet.replan`, and in the damaged seat flow `Issue.enrichDamagedSeating`, `Issue.assignTugger`) are `PUBLISH ... TO SOURCE` calls inside procedures, so the design model and visual event handlers do not show them. To change later: a `Fleet` outbound event `OutboundTuggerRequest` routed to a `Tugger` inbound `InboundTuggerRequest` whose handler does the write; Supplier B's confirmation already returns through `Tugger.OutboundTuggerEvent` -> `Fleet.InboundTuggerEvent`. Needs one more route drawn in the Modeler.

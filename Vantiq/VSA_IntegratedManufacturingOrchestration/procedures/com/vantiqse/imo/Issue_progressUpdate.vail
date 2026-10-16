@@ -1,7 +1,7 @@
-// Turns a replacement progress event (ReplacementPicked, ReplacementOnTugger, HoldReleased) into a UI update. When the spare is picked, Vantiq finds and requests a tugger for it. When the hold is released the vehicle's Issue collaboration is completed.
+// Turns a replacement progress event (ReplacementPicked, ReplacementOnTugger, HoldReleased, ReplacementDelivered) into a UI update. When the spare is picked, Vantiq finds and requests a tugger for it. The vehicle's Issue collaboration is completed when the tugger has delivered the replacement, not when the hold is released.
 package com.vantiqse.imo
 
-STATELESS PROCEDURE Issue.progressUpdate(event REQUIRED DESCRIPTION "Normalized ReplacementPicked, ReplacementOnTugger or HoldReleased event"): Object
+STATELESS PROCEDURE Issue.progressUpdate(event REQUIRED DESCRIPTION "Normalized ReplacementPicked, ReplacementOnTugger, HoldReleased or ReplacementDelivered event"): Object
 
 var kind = event.type
 var bin = null
@@ -10,7 +10,7 @@ if (event.detail != null) {
     bin = event.detail.bin
     seq = event.detail.seq
 }
-var summary = "Supplier A released the hold on " + event.vin + ". The replacement carries on as its seat set."
+var summary = "Supplier A released the hold on " + event.vin + ". The replacement is on its way."
 var tugger = null
 var charger = null
 var chargePct = null
@@ -30,7 +30,9 @@ if (event.type == "ReplacementPicked") {
 } else if (event.type == "ReplacementOnTugger") {
     tugger = event.detail.tugger
     summary = "Supplier B assigned the replacement of " + event.vin + " to tugger " + tugger
-} else {
+} else if (event.type == "ReplacementDelivered") {
+    tugger = event.detail.tugger
+    summary = "Tugger " + tugger + " delivered the replacement for " + event.vin + ". Vantiq closes the case."
     EXECUTE Issue.completeForVehicle(event.vin) WITH partitionKey = event.vin
 }
 

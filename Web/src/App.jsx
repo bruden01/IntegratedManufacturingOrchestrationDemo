@@ -41,12 +41,13 @@ const TAG_CLASS = {
 };
 
 
-const STATE_OF_INCIDENT = (inc) => (inc.released ? 'released' : inc.onTugger ? 'ontugger' : inc.picked ? 'picked' : inc.reserved ? 'reserved' : inc.noSpare ? 'nospare' : 'open');
+const STATE_OF_INCIDENT = (inc) => (inc.delivered ? 'delivered' : inc.released ? 'released' : inc.onTugger ? 'ontugger' : inc.picked ? 'picked' : inc.reserved ? 'reserved' : inc.noSpare ? 'nospare' : 'open');
 
 // One-line callout on the vehicle's row: what the back end is doing right now.
 const incidentNote = (inc) => {
   const st = STATE_OF_INCIDENT(inc);
-  if (st === 'released') return 'Supplier A released the hold: replacement on its way';
+  if (st === 'delivered') return `Tugger ${inc.tugger} delivered the replacement`;
+  if (st === 'released') return `Supplier A released the hold: replacement on its way${inc.tugger ? ` on tugger ${inc.tugger}` : ''}`;
   if (st === 'ontugger') return `Supplier B assigned the replacement to tugger ${inc.tugger}`;
   if (st === 'picked') return inc.tugger ? `Supplier A picked the replacement (bin ${inc.bin}), Vantiq asked for tugger ${inc.tugger}` : `Supplier A picked the replacement (bin ${inc.bin})`;
   if (st === 'reserved') return `Vantiq reserved a spare (bin ${inc.bin}), waiting on Supplier A to pick`;
@@ -78,7 +79,9 @@ const incidentSteps = (inc) => [
   { actor: 'Vantiq', text: inc.checkSummary || 'Vantiq checks the tuggers (Supplier B) and their chargers (OPC UA)', at: inc.checkedTs },
   { actor: 'Vantiq', text: `Vantiq asks Supplier B to carry the replacement${inc.tugger ? ` on ${inc.tugger}` : ''}`, at: inc.assignedTs },
   { actor: 'Supplier B', text: `Supplier B assigns the replacement to tugger${inc.tugger ? ` ${inc.tugger}` : ''}`, at: inc.onTugger },
-  { actor: 'Supplier A', text: 'Hold released, the replacement continues as the seat set. Vantiq closes the case', at: inc.released },
+  { actor: 'Supplier A', text: 'Supplier A releases the hold. The replacement is on its way', at: inc.released },
+  { actor: 'Supplier B', text: `Tugger${inc.tugger ? ` ${inc.tugger}` : ''} delivers the replacement`, at: inc.delivered },
+  { actor: 'Vantiq', text: 'Vantiq sees the replacement arrive, recomputes the buffer and closes the case', at: inc.delivered },
 ];
 
 // The tugger fault's path, step by step, with who does each step.
@@ -88,7 +91,10 @@ const tuggerFaultSteps = (f) => [
   f.unplaced > 0 && !f.moves?.length
     ? { actor: 'Vantiq', text: 'No healthy tugger available. Needs a person to decide', at: f.assignedTs, warn: true }
     : { actor: 'Vantiq', text: f.assignSummary || 'Vantiq asks Supplier B to move the seat sets', at: f.assignedTs },
-  { actor: 'Supplier B', text: `Supplier B moves ${f.moves?.length ?? ''} seat sets off ${f.tugger}`, at: f.movedTs },
+  ...(f.moves || []).map((m) => {
+    const done = (f.movedDone || []).find((d) => d.vin === m.vin);
+    return { actor: 'Supplier B', text: `Supplier B moves seq ${m.seq} from ${m.fromTugger} to ${m.toTugger}`, at: done?.at };
+  }),
   { actor: 'Vantiq', text: f.tightestBufferSec != null ? `Vantiq recomputes the buffer: tightest ${mmss(f.tightestBufferSec)}, line-stop risk ${f.risk}` : 'Vantiq recomputes the buffer and the line-stop risk', at: f.recomputedTs },
 ];
 
@@ -291,7 +297,7 @@ export default function App() {
           return;
         }
         if (u.kind === 'TuggerReassigned') {
-          setTuggerFault((prev) => ({ ...(prev || { tugger: u.tugger }), movedTs: u.ts, recomputedTs: u.recomputedTs, tightestBufferSec: u.tightestBufferSec, risk: u.risk }));
+          setTuggerFault((prev) => ({ ...(prev || { tugger: u.tugger }), movedTs: u.ts, movedDone: [...(prev?.movedDone || []), ...(u.moved || []).map((m) => ({ ...m, at: u.ts }))], recomputedTs: u.recomputedTs, tightestBufferSec: u.tightestBufferSec, risk: u.risk }));
           setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag: 'SUPPLIER', event: u.summary, action: u.tightestBufferSec != null ? `Vantiq recomputed the buffer: tightest ${mmss(u.tightestBufferSec)}, line-stop risk ${u.risk}` : 'Vantiq recomputed the buffer' }, ...prev]);
           return;
         }
@@ -305,6 +311,7 @@ export default function App() {
           }
           if (u.kind === 'ReplacementOnTugger') return { ...prev, [u.vin]: { ...cur, tugger: u.tugger || cur.tugger, onTugger: u.ts } };
           if (u.kind === 'HoldReleased') return { ...prev, [u.vin]: { ...cur, released: u.ts } };
+          if (u.kind === 'ReplacementDelivered') return { ...prev, [u.vin]: { ...cur, tugger: u.tugger || cur.tugger, delivered: u.ts } };
           return prev;
         });
         const tag = u.kind === 'NoReplacementAvailable' ? 'EQUIPMENT' : u.kind === 'ReplacementReserved' ? 'QUALITY' : 'SUPPLIER';
@@ -313,7 +320,8 @@ export default function App() {
           u.kind === 'ReplacementReserved' ? `Vantiq reserved the spare from bin ${u.bin}` :
           u.kind === 'ReplacementPicked' ? (u.tugger ? `Supplier A picked the replacement; Vantiq checked ${u.charger} (${u.chargePct}%) and asked for tugger ${u.tugger}` : 'Supplier A picked the replacement; Vantiq found no tugger') :
           u.kind === 'ReplacementOnTugger' ? `Supplier B assigned the replacement to tugger ${u.tugger}` :
-          u.kind === 'HoldReleased' ? 'Hold released, case closed in Vantiq' : 'No replacement in stock';
+          u.kind === 'HoldReleased' ? 'Supplier A released the hold; the replacement is still on its way' :
+          u.kind === 'ReplacementDelivered' ? 'Replacement delivered, case closed in Vantiq' : 'No replacement in stock';
         setLog((prev) => [{ t: new Date().toLocaleTimeString('en-GB'), tag, event, action }, ...prev]);
       }),
     [],
@@ -375,7 +383,11 @@ export default function App() {
     // A pulled-forward set keeps its old stage until Supplier A accepts; show where it is headed.
     const target = mv && !mv.confirmed && mv.note === 'pulled forward' ? stageForNeed(r.needInSec - simElapsed) : null;
     const pendingStage = target && target !== r.stage ? ` → ${STAGE_LABEL[target]} (pending)` : '';
-    const status = r.hold ? holdStatus(incidents[r.vin]) : `${STAGE_LABEL[r.stage] || r.stage}${pendingStage}`;
+    const plannedMove = (tuggerFault?.moves || []).find((m) => m.vin === r.vin);
+    const tuggerStatus = r.tuggerFault
+      ? `Tugger ${r.tugger} down: ${plannedMove ? `Supplier B to move to ${plannedMove.toTugger}` : 'finding another tugger'}`
+      : r.movedFrom ? `Moved from ${r.movedFrom} to ${r.tugger}` : '';
+    const status = r.hold ? holdStatus(incidents[r.vin]) : tuggerStatus || `${STAGE_LABEL[r.stage] || r.stage}${pendingStage}`;
     const tone = note ? 'act' : r.stage === 'QUEUED' || r.stage === 'PICKING' ? 'neutral' : 'ok';
     return {
       seq: r.seq,

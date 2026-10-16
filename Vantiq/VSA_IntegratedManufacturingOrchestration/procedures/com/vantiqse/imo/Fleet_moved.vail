@@ -16,6 +16,9 @@ if (detail.moved != null) {
     count = detail.moved.size()
 }
 var summary = "Supplier B moved " + count + " seat sets off " + detail.tugger
+if (detail.moved != null && count == 1) {
+    summary = "Supplier B moved seq " + detail.moved[0].seq + " from " + detail.moved[0].fromTugger + " to " + detail.moved[0].toTugger
+}
 var kind = "TuggerReassigned"
 if (detail.reason == "BUILD_ORDER") {
     kind = "TuggerReplanned"

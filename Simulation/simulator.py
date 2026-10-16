@@ -42,8 +42,9 @@ FIRST_NEED_SEC = 860   # sim seconds until the first vehicle is needed
 TELEMETRY_SEC = 2      # sim seconds between tugger telemetry messages
 TICK_SEC = 0.25        # real seconds per loop iteration
 PICK_DELAY_SEC = 4.0   # real seconds from Vantiq reserving a spare to the picker taking it from the bin
+REPLACEMENT_DELIVERY_DELAY_SEC = 10.0   # real seconds from the hold release to the tugger delivering the replacement
 RELEASE_DELAY_SEC = 3.0   # real seconds from the pick to the supplier releasing the hold on the seat set
-TUGGER_MOVE_DELAY_SEC = 4.0   # real seconds for Supplier B to move the loads off a faulted tugger
+TUGGER_MOVE_DELAY_SEC = 5.0   # real seconds for Supplier B to move each load off a faulted tugger (one at a time)
 TUGGER_REPLAN_DELAY_SEC = 6.0   # real seconds for Supplier B to swap the loads after a build-order change (long enough to talk through the request)
 TUGGER_ASSIGN_DELAY_SEC = 2.0   # real seconds for Supplier B to assign the tugger Vantiq asked for
 HOLD_DELAY_SEC = 3.0   # real seconds from a failed quality scan to the supplier's system holding the seat set
@@ -531,6 +532,22 @@ class Simulator:
             if self.erp:
                 self.erp.update_seat_set(v)
             self._post_replacement(v, 'HOLD_RELEASED', bin_id)
+        # The replacement is still in the warehouse until Supplier B's tugger brings it: the seat set only counts
+        # as delivered, and the buffer only recovers, when it arrives.
+        time.sleep(REPLACEMENT_DELIVERY_DELAY_SEC)
+        with self.lock:
+            if epoch != self.epoch or v not in self.vehicles:
+                return
+            tugger = tugger_id or v['tugger']
+            v['tugger'] = tugger
+            v['pin'] = 'ON_TUGGER'   # the set is on its tugger from here, whatever its need time says
+            v['stage'] = held_stage(v)
+            self.erp.deliver_replacement(v['vin'])
+            self._publish_part_status(v)
+            self.pub.post('PartStatus', {
+                'type': 'PartStatus', 'vin': v['vin'], 'seq': v['seq'], 'stage': 'REPLACEMENT_DELIVERED',
+                'tugger': tugger, 'bin': bin_id, 'source': 'supplier-b', 'ts': now_iso(),
+            })
 
     def _post_replacement(self, v, stage, bin_id):
         self.pub.post('PartStatus', {
@@ -571,21 +588,21 @@ class Simulator:
                 time.sleep(0.5)
         if not rows:
             return
-        time.sleep(TUGGER_MOVE_DELAY_SEC)
-        moved = []
-        with self.lock:
-            if epoch != self.epoch:
-                return
-            for vin, seq, to, frm in rows:
+        # Supplier B moves one load at a time, so the dashboard shows each set changing tugger in turn.
+        for vin, seq, to, frm in rows:
+            time.sleep(TUGGER_MOVE_DELAY_SEC)
+            with self.lock:
+                if epoch != self.epoch:
+                    return
                 for v in self.vehicles:
                     if v['vin'] == vin:
                         v['tugger'] = to
                 self.erp.confirm_tugger(vin, seq, to)
-                moved.append({'seq': seq, 'vin': vin, 'fromTugger': frm, 'toTugger': to})
-            self.pub.publish(f'{TOPIC_TUGGER}/{rows[0][3]}/fault', {
-                'type': 'TuggerReassigned', 'tugger': rows[0][3], 'moved': moved,
-                'source': 'supplier-b', 'ts': now_iso(),
-            })
+                self.pub.publish(f'{TOPIC_TUGGER}/{frm}/fault', {
+                    'type': 'TuggerReassigned', 'tugger': frm,
+                    'moved': [{'seq': seq, 'vin': vin, 'fromTugger': frm, 'toTugger': to}],
+                    'source': 'supplier-b', 'ts': now_iso(),
+                })
 
     def _scenario_charger(self):
         """Charging station CHG-2 trips a contactor fault (OPC UA machine data only)."""
