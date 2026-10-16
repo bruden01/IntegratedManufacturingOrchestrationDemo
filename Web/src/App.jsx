@@ -92,6 +92,7 @@ const tuggerFaultSteps = (f) => [
 export default function App() {
   const [flags, setFlags] = useState({ reorder: false, damage: false, tugger: false });
   const [log, setLog] = useState([]);
+  const [seedCleared, setSeedCleared] = useState(false);   // the Clear button on the log also drops the starting entry
   const [startedAt, setStartedAt] = useState(() => Date.now());   // when this run began; the starting log entry is dated from it
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [view, setView] = useState('dashboard');
@@ -316,6 +317,7 @@ export default function App() {
       .finally(() => callSim('/reset'));
     setFlags({ reorder: false, damage: false, tugger: false });
     setLog([]);
+    setSeedCleared(false);
     setIncidents({});
     setTuggerFault(null);
     setMoves({});
@@ -367,7 +369,9 @@ export default function App() {
     { name: 'Line-side', count: 0, note: '', alert: false },
   ];
 
-  const fullLog = [...log, seedEntry(startedAt)];
+  const fullLog = seedCleared ? log : [...log, seedEntry(startedAt)];
+  const clearLog = () => { setLog([]); setSeedCleared(true); };
+  const clearBehindTheScenes = () => { setIncidents({}); setTuggerFault(null); };
 
   return (
     <div className="shell">
@@ -485,6 +489,7 @@ export default function App() {
               <div className="panel-head flush">
                 <h2>Behind the scenes</h2>
                 <span className="mono muted">Who does what</span>
+                <button type="button" className="btn btn-ghost btn-small" onClick={clearBehindTheScenes}>Clear</button>
               </div>
               {Object.values(incidents).map((inc) => (
                 <div key={inc.vin} className="incident">
@@ -530,7 +535,10 @@ export default function App() {
           </section>
 
           <section className="panel">
-            <div className="panel-head"><h2>Event and action log</h2></div>
+            <div className="panel-head">
+              <h2>Event and action log</h2>
+              <button type="button" className="btn btn-ghost btn-small" onClick={clearLog} disabled={fullLog.length === 0}>Clear</button>
+            </div>
             <div className="log">
               {fullLog.map((e, i) => (
                 <div key={`${e.t}-${i}`} className="log-item">

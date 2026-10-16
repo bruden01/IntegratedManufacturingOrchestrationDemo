@@ -116,6 +116,8 @@ h2 { margin: 0; font: 600 22px var(--display); letter-spacing: 0.02em; }
 .btn-info.on { border-color: var(--blue); background: #162433; color: var(--blue); }
 .btn-act.on { border-color: var(--amber); background: #33270f; color: var(--amber); }
 .btn-crit.on { border-color: var(--red); background: #331a18; color: var(--red); }
+.btn-small { min-height: 32px; padding: 4px 12px; font-size: 13px; }
+.btn:disabled { opacity: 0.4; cursor: default; }
 .btn-ghost { background: transparent; color: var(--muted); border-color: var(--line); }
 
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
